@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC4 - Ingresos por Conductor - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>💰 RFC4 - Ingresos por Conductor</h1>
+            <p>Consultar ingresos y estadísticas de conductores</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Ingresos por Conductor -->
+            <div class="form-section">
+                <h2>👨‍💼 Consultar Ingresos por Conductor</h2>
+                <form id="ingresosConductorForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="conductor_cedula">Cédula del Conductor</label>
+                            <select id="conductor_cedula" name="conductor_cedula">
+                                <option value="">Seleccionar conductor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_inicio">Fecha Inicio</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_fin">Fecha Fin</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Consultar Ingresos</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('ingresosConductorForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Top Conductores por Ingresos -->
+            <div class="form-section">
+                <h2>🏆 Top Conductores por Ingresos</h2>
+                <form id="topConductoresForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="limite_top">Cantidad a Mostrar</label>
+                            <select id="limite_top" name="limite">
+                                <option value="5">Top 5</option>
+                                <option value="10" selected>Top 10</option>
+                                <option value="20">Top 20</option>
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="periodo_inicio">Fecha Inicio</label>
+                            <input type="date" id="periodo_inicio" name="fecha_inicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="periodo_fin">Fecha Fin</label>
+                            <input type="date" id="periodo_fin" name="fecha_fin">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Ver Top Conductores</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('topConductoresForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Análisis de Desempeño -->
+            <div class="form-section">
+                <h2>📊 Análisis de Desempeño</h2>
+                <div class="form-row">
+                    <button class="btn btn-info" onclick="resumenIngresosConductores()">Resumen General</button>
+                    <button class="btn btn-info" onclick="conductoresPorCategoria()">Por Categoría</button>
+                    <button class="btn btn-info" onclick="tendenciasIngresos()">Tendencias</button>
+                    <button class="btn btn-info" onclick="comparativaIngresos()">Comparativa</button>
+                </div>
+            </div>
+
+            <!-- Sección: Reportes Especializados -->
+            <div class="form-section">
+                <h2>📈 Reportes Especializados</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="ingresosPorMes()">Ingresos Mensuales</button>
+                    <button class="btn btn-secondary" onclick="ingresosPorTipoServicio()">Por Tipo de Servicio</button>
+                    <button class="btn btn-secondary" onclick="conductoresActivos()">Conductores Activos</button>
+                    <button class="btn btn-secondary" onclick="estadisticasGeneralesConductores()">Estadísticas Generales</button>
+                </div>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>💼 Resultados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                        <div id="tabla-top-conductores">
+                            <p class="alert alert-info">Cargando datos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Consultar ingresos de un conductor específico
+        document.getElementById('ingresosConductorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            const cedulaConductor = document.getElementById('conductor_cedula').value;
+            if (!cedulaConductor) {
+                showResult('Por favor seleccione un conductor.', true);
+                return;
+            }
+            
+            try {
+                const ingresos = await get(`/consultas/ingresosConductor/${cedulaConductor}?${params}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (ingresos) {
+                    const fechaInicio = document.getElementById('fecha_inicio').value || 'Inicio';
+                    const fechaFin = document.getElementById('fecha_fin').value || 'Actualidad';
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>💰 Ingresos del Conductor ${ingresos.nombreConductor}</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>💰 Ingresos Totales</h5>
+                                <p style="font-size: 2em; margin: 0;">$${(ingresos.ingresosTotales || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>🚕 Total Servicios</h5>
+                                <p style="font-size: 2em; margin: 0;">${ingresos.totalServicios || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>📊 Promedio/Servicio</h5>
+                                <p style="font-size: 1.5em; margin: 0;">$${(ingresos.promedioServicio || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>📅 Período</h5>
+                                <p style="font-size: 1em; margin: 0;">${fechaInicio} - ${fechaFin}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron datos de ingresos para el conductor especificado.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar ingresos: ${error.message}`, true);
+            }
+        });
+        
+        // Consultar top conductores por ingresos
+        document.getElementById('topConductoresForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const conductores = await get(`/consultas/topConductoresPorIngresos?${params}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(conductores) && conductores.length > 0) {
+                    const headers = ['Ranking', 'Cédula', 'Nombre', 'Ingresos Totales', 'Total Servicios', 'Promedio/Servicio', 'Eficiencia'];
+                    const tableData = conductores.map((conductor, index) => [
+                        `🏆 ${index + 1}`,
+                        conductor.cedula,
+                        conductor.nombre,
+                        `$${(conductor.ingresosTotales || 0).toLocaleString()}`,
+                        conductor.totalServicios || 0,
+                        `$${(conductor.promedioServicio || 0).toLocaleString()}`,
+                        conductor.eficiencia || 'N/A'
+                    ]);
+                    
+                    const limite = document.getElementById('limite_top').value || conductores.length;
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🏆 Top ${limite} Conductores por Ingresos</h4>
+                        <p class="alert alert-success">Ranking de conductores con mejores ingresos</p>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron conductores con ingresos.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar top conductores: ${error.message}`, true);
+            }
+        });
+        
+        // Resumen de ingresos de conductores
+        async function resumenIngresosConductores() {
+            try {
+                const resumen = await get('/consultas/resumenIngresosConductores');
+                const resultsDiv = document.getElementById('results');
+                
+                if (resumen) {
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Resumen General de Ingresos</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>💰 Ingresos Totales</h5>
+                                <p style="font-size: 2em; margin: 0;">$${(resumen.ingresosTotales || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>👨‍💼 Conductores Activos</h5>
+                                <p style="font-size: 2em; margin: 0;">${resumen.conductoresActivos || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>📊 Promedio por Conductor</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(resumen.promedioConductor || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>🚕 Servicios Totales</h5>
+                                <p style="font-size: 2em; margin: 0;">${resumen.serviciosTotales || 0}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se pudo obtener el resumen de ingresos.', true);
+                }
+            } catch (error) {
+                showResult(`Error al obtener resumen: ${error.message}`, true);
+            }
+        }
+        
+        // Conductores por categoría de ingresos
+        async function conductoresPorCategoria() {
+            try {
+                const categorias = await get('/consultas/conductoresPorCategoriaIngresos');
+                const resultsDiv = document.getElementById('results');
+                
+                if (categorias) {
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Conductores por Categoría de Ingresos</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>👑 Premium (>$1M)</h5>
+                                <p style="font-size: 2em; margin: 0;">${categorias.premium || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>🥈 Alto ($500K-$1M)</h5>
+                                <p style="font-size: 2em; margin: 0;">${categorias.alto || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>🥉 Medio ($100K-$500K)</h5>
+                                <p style="font-size: 2em; margin: 0;">${categorias.medio || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #708090 0%, #2F4F4F 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>⭐ Básico (<$100K)</h5>
+                                <p style="font-size: 2em; margin: 0;">${categorias.basico || 0}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se pudieron obtener las categorías.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar categorías: ${error.message}`, true);
+            }
+        }
+        
+        // Tendencias de ingresos
+        async function tendenciasIngresos() {
+            try {
+                const tendencias = await get('/consultas/tendenciasIngresosConductores');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(tendencias) && tendencias.length > 0) {
+                    const headers = ['Período', 'Ingresos Totales', 'Conductores Activos', 'Promedio por Conductor', 'Tendencia'];
+                    const tableData = tendencias.map(periodo => [
+                        periodo.periodo,
+                        `$${(periodo.ingresosTotales || 0).toLocaleString()}`,
+                        periodo.conductoresActivos || 0,
+                        `$${(periodo.promedioConductor || 0).toLocaleString()}`,
+                        periodo.tendencia || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📈 Tendencias de Ingresos por Período</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron datos de tendencias.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar tendencias: ${error.message}`, true);
+            }
+        }
+        
+        // Comparativa de ingresos
+        async function comparativaIngresos() {
+            try {
+                const comparativa = await get('/consultas/comparativaIngresosConductores');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(comparativa) && comparativa.length > 0) {
+                    const headers = ['Conductor', 'Este Mes', 'Mes Anterior', 'Variación', 'Porcentaje', 'Estado'];
+                    const tableData = comparativa.map(conductor => [
+                        conductor.nombre,
+                        `$${(conductor.ingresoActual || 0).toLocaleString()}`,
+                        `$${(conductor.ingresoAnterior || 0).toLocaleString()}`,
+                        `$${(conductor.variacion || 0).toLocaleString()}`,
+                        `${conductor.porcentajeVariacion || 0}%`,
+                        conductor.estado || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Comparativa de Ingresos (Mes Actual vs Anterior)</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron datos para la comparativa.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar comparativa: ${error.message}`, true);
+            }
+        }
+        
+        // Ingresos por mes
+        async function ingresosPorMes() {
+            try {
+                const ingresos = await get('/consultas/ingresosPorMes');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(ingresos) && ingresos.length > 0) {
+                    const headers = ['Mes/Año', 'Ingresos Totales', 'Conductores Activos', 'Servicios', 'Promedio/Conductor'];
+                    const tableData = ingresos.map(mes => [
+                        mes.periodo,
+                        `$${(mes.ingresosTotales || 0).toLocaleString()}`,
+                        mes.conductoresActivos || 0,
+                        mes.servicios || 0,
+                        `$${(mes.promedioConductor || 0).toLocaleString()}`
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📅 Ingresos Mensuales</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron datos mensuales.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar ingresos mensuales: ${error.message}`, true);
+            }
+        }
+        
+        // Ingresos por tipo de servicio
+        async function ingresosPorTipoServicio() {
+            try {
+                const ingresos = await get('/consultas/ingresosPorTipoServicio');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(ingresos) && ingresos.length > 0) {
+                    const headers = ['Tipo de Servicio', 'Ingresos Totales', 'Cantidad Servicios', 'Promedio/Servicio', 'Porcentaje'];
+                    const tableData = ingresos.map(tipo => [
+                        tipo.tipoServicio,
+                        `$${(tipo.ingresosTotales || 0).toLocaleString()}`,
+                        tipo.cantidadServicios || 0,
+                        `$${(tipo.promedioServicio || 0).toLocaleString()}`,
+                        `${tipo.porcentaje || 0}%`
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🚕 Ingresos por Tipo de Servicio</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se encontraron datos por tipo de servicio.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar por tipo de servicio: ${error.message}`, true);
+            }
+        }
+        
+        // Conductores activos
+        async function conductoresActivos() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(conductores) && conductores.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Licencia', 'Celular', 'Estado'];
+                    const tableData = conductores.map(conductor => [
+                        conductor.id_usuario,
+                        conductor.usuario?.nombre || 'N/A',
+                        conductor.licencia || 'N/A',
+                        conductor.usuario?.celular || 'N/A',
+                        'Activo'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>👨‍💼 Conductores Activos (${conductores.length})</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron conductores activos.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al cargar conductores: ${error.message}`, true);
+            }
+        }
+        
+        // Estadísticas generales de conductores
+        async function estadisticasGeneralesConductores() {
+            try {
+                const stats = await get('/consultas/estadisticasGeneralesConductores');
+                const resultsDiv = document.getElementById('results');
+                
+                if (stats) {
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Estadísticas Generales de Conductores</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>👨‍💼 Total Conductores</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${stats.totalConductores || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>💰 Ingresos Totales</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(stats.ingresosTotales || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>📊 Promedio/Conductor</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(stats.promedioConductor || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>🚕 Servicios Totales</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${stats.serviciosTotales || 0}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Top 10 Conductores por Ingresos</h4>
+                            <div id="tabla-top-conductores">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarTopConductores, 500);
+                } else {
+                    showResult('No se pudieron obtener las estadísticas generales.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar estadísticas: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar conductores en el select
+        async function cargarConductores() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const select = document.getElementById('conductor_cedula');
+                
+                select.innerHTML = '<option value="">Seleccionar conductor...</option>';
+                
+                if (Array.isArray(conductores)) {
+                    conductores.forEach(conductor => {
+                        const option = document.createElement('option');
+                        option.value = conductor.id_usuario;
+                        option.textContent = `${conductor.id_usuario} - ${conductor.usuario?.nombre || 'Sin nombre'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar conductores:', error);
+            }
+        }
+        
+        // Cargar top conductores inicial
+        async function cargarTopConductores() {
+            try {
+                const conductores = await get('/consultas/topConductoresPorIngresos?limite=10');
+                const tablaDiv = document.getElementById('tabla-top-conductores');
+                
+                if (Array.isArray(conductores) && conductores.length > 0) {
+                    const headers = ['Pos.', 'Cédula', 'Nombre', 'Ingresos', 'Servicios'];
+                    const tableData = conductores.map((conductor, index) => [
+                        `${index + 1}°`,
+                        conductor.cedula,
+                        conductor.nombre,
+                        `$${(conductor.ingresosTotales || 0).toLocaleString()}`,
+                        conductor.totalServicios || 0
+                    ]);
+                    tablaDiv.innerHTML = createTable(tableData, headers);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron conductores con ingresos.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-top-conductores');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar top conductores</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar conductores en el select
+            cargarConductores();
+            
+            // Cargar tabla inicial
+            cargarTopConductores();
+            
+            // Establecer fechas por defecto (este mes)
+            const hoy = new Date();
+            const primerDiaMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            
+            document.getElementById('fecha_inicio').value = primerDiaMes.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = hoy.toISOString().split('T')[0];
+            document.getElementById('periodo_inicio').value = primerDiaMes.toISOString().split('T')[0];
+            document.getElementById('periodo_fin').value = hoy.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF4 - Registrar Vehículo para Usuario Conductor - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚗 RF4 - Registrar Vehículo para Usuario Conductor</h1>
+            <p>Un conductor puede registrar un vehículo a su nombre con los datos indicados en la descripción general del caso</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Registrar Vehículo -->
+            <div class="form-section">
+                <h2>🚗 Registrar Nuevo Vehículo</h2>
+                <form id="vehiculoForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="placa">Placa del Vehículo *</label>
+                            <input type="text" id="placa" name="placa" required 
+                                   placeholder="Ej: ABC123" maxlength="10">
+                        </div>
+                        <div class="form-group">
+                            <label for="marca">Marca *</label>
+                            <input type="text" id="marca" name="marca" required 
+                                   placeholder="Ej: Toyota, Chevrolet, Nissan">
+                        </div>
+                        <div class="form-group">
+                            <label for="modelo">Modelo *</label>
+                            <input type="text" id="modelo" name="modelo" required 
+                                   placeholder="Ej: Corolla, Aveo, Sentra">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="anio">Año *</label>
+                            <input type="number" id="anio" name="anio" required 
+                                   min="1990" max="2030" placeholder="Ej: 2020">
+                        </div>
+                        <div class="form-group">
+                            <label for="color">Color *</label>
+                            <input type="text" id="color" name="color" required 
+                                   placeholder="Ej: Blanco, Negro, Azul">
+                        </div>
+                        <div class="form-group">
+                            <label for="capacidad">Capacidad de Pasajeros *</label>
+                            <input type="number" id="capacidad" name="capacidad" required 
+                                   min="1" max="20" placeholder="Ej: 4">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="conductor_cedula">Conductor (Cédula) *</label>
+                            <!-- El backend espera el parámetro 'id_usuario' -->
+                            <select id="conductor_cedula" name="id_usuario" required>
+                                <option value="">Seleccionar conductor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo_vehiculo">Tipo de Vehículo *</label>
+                            <select id="tipo_vehiculo" name="id_tipo_vehiculo" required>
+                                <option value="">Seleccionar tipo...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ciudad_select">Ciudad *</label>
+                            <!-- Agregamos selección de ciudad porque la tabla VEHICULO requiere id_ciudad NOT NULL -->
+                            <select id="ciudad_select" name="id_ciudad" required>
+                                <option value="">Seleccionar ciudad...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="soat">SOAT Vigente</label>
+                            <input type="date" id="soat" name="soat">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Registrar Vehículo</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('vehiculoForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>🚗 Vehículos Registrados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <div id="tabla-vehiculos">
+                            <p class="alert alert-info">Cargando vehículos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+        <script src="js/common.js"></script>
+    <script>
+            // Registrar vehículo
+        document.getElementById('vehiculoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!validateForm('vehiculoForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+
+            // Enviamos FormData directamente para que el controller reciba @RequestParam
+            const formData = new FormData(this);
+
+            try {
+                // Endpoint del backend: /vehiculos/insertar (mapea con VehiculoController.insertarVehiculo)
+                const response = await post('/vehiculos/insertar', formData);
+
+                // El controlador retorna texto indicando éxito o error
+                // El backend devuelve texto como "Vehiculo insertado correctamente".
+                // Normalizamos la detección buscando palabras clave comunes de éxito.
+                if (response && typeof response === 'string') {
+                    const r = response.toLowerCase();
+                    const isSuccess = /insertad|actualiz|correct|exitos/i.test(r);
+                    if (isSuccess) {
+                        showResult(`✅ Vehículo registrado exitosamente con placa: ${formData.get('placa')}`, false);
+                        resetForm('vehiculoForm');
+                        // Pequeña espera para asegurar que la inserción en el servidor/BD esté lista
+                        await delay(300);
+                        // Recargar la tabla automáticamente y bustear cache para evitar respuestas stale
+                        await cargarVehiculos(true);
+                    } else {
+                        // Si backend retorna un texto distinto, mostrarlo como error para debugging
+                        showResult(response || 'Error al registrar el vehículo.', true);
+                    }
+                } else {
+                    showResult('Error al registrar el vehículo: respuesta inesperada del servidor.', true);
+                }
+            } catch (error) {
+                showResult(`Error al registrar vehículo: ${error.message}`, true);
+            }
+        });
+        
+        // Cargar conductores en el select
+        async function cargarConductores() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const select = document.getElementById('conductor_cedula');
+                
+                select.innerHTML = '<option value="">Seleccionar conductor...</option>';
+                
+                if (Array.isArray(conductores)) {
+                    conductores.forEach(conductor => {
+                        const option = document.createElement('option');
+                        option.value = conductor.id_usuario;
+                        option.textContent = `${conductor.id_usuario} - ${conductor.usuario?.nombre || 'Sin nombre'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar conductores:', error);
+            }
+        }
+
+        // Helper: pequeño delay (útil para esperar commits rápidos en entornos locales)
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        // Cargar tipos de vehículo en el select
+        async function cargarTiposVehiculo() {
+            try {
+                const tipos = await get('/tiposVehiculo/darTiposVehiculo');
+                const select = document.getElementById('tipo_vehiculo');
+                
+                select.innerHTML = '<option value="">Seleccionar tipo...</option>';
+                
+                if (Array.isArray(tipos)) {
+                    tipos.forEach(tipo => {
+                        const option = document.createElement('option');
+                        // El objeto TipoVehiculo expone 'id_tipo_vehiculo'
+                        option.value = tipo.id_tipo_vehiculo ?? tipo.id ?? '';
+                        option.textContent = tipo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar tipos de vehículo:', error);
+            }
+        }
+
+        // Cargar ciudades en el select (el backend espera id_ciudad en el insert)
+        async function cargarCiudades() {
+            try {
+                const ciudades = await get('/ciudades/darCiudades');
+                const select = document.getElementById('ciudad_select');
+
+                select.innerHTML = '<option value="">Seleccionar ciudad...</option>';
+
+                if (Array.isArray(ciudades)) {
+                    ciudades.forEach(ciudad => {
+                        const option = document.createElement('option');
+                        option.value = ciudad.id_ciudad ?? ciudad.id ?? '';
+                        option.textContent = ciudad.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar ciudades:', error);
+            }
+        }
+        
+        // Cargar vehículos registrados
+        async function cargarVehiculos(useCacheBust = false) {
+            try {
+                const url = '/vehiculos/darVehiculos' + (useCacheBust ? '?_=' + Date.now() : '');
+                const vehiculos = await get(url);
+                const tablaDiv = document.getElementById('tabla-vehiculos');
+                
+                if (Array.isArray(vehiculos) && vehiculos.length > 0) {
+                    // Ajustamos headers y mapeo para los campos que realmente devuelve el backend
+                    const headers = ['Placa', 'Marca', 'Modelo', 'Color', 'Capacidad', 'Conductor', 'Tipo', 'Ciudad'];
+                    const tableData = vehiculos.map(vehiculo => [
+                        vehiculo.placa,
+                        vehiculo.marca,
+                        // 'modelo' se usa como tal (no existe 'anio' en la entidad/tabla)
+                        vehiculo.modelo,
+                        vehiculo.color,
+                        vehiculo.capacidad,
+                        // El backend devuelve 'usuario' con los datos del conductor
+                        vehiculo.usuario?.nombre || vehiculo.usuario?.cedula || 'N/A',
+                        vehiculo.tipoVehiculo?.nombre || 'N/A',
+                        vehiculo.ciudad?.nombre || 'N/A'
+                    ]);
+                    
+                    tablaDiv.innerHTML = `
+                        <h4>🚗 Vehículos Registrados (${vehiculos.length})</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No hay vehículos registrados.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-vehiculos');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar vehículos</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar selects
+            cargarConductores();
+            cargarTiposVehiculo();
+            cargarCiudades();
+            
+            // Cargar tabla inicial
+            cargarVehiculos();
+        });
+    </script>
+</body>
+</html>

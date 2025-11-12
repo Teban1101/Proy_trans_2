@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlpesCab - Sistema de Transporte</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 AlpesCab</h1>
+            <p>Sistema de Gestión de Transporte - Frontend de Pruebas</p>
+        </div>
+        
+        <div class="navigation">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Menú Principal</h2>
+            
+            <div class="alert alert-info">
+                <strong>¡Bienvenido!</strong> Este frontend te permite probar todos los requerimientos funcionales (RF) y requerimientos funcionales de consulta (RFC) implementados en el sistema AlpesCab.
+            </div>
+            
+            <h3 style="color: #667eea; margin-bottom: 20px;">📝 Requerimientos Funcionales (RF)</h3>
+            <div class="nav-grid">
+                <a href="rf1-ciudades.html" class="nav-card">
+                    <h3>RF1 - Registrar una Ciudad</h3>
+                    <p>Registra una nueva ciudad en la que se prestarán servicios de transporte para AlpesCab.</p>
+                </a>
+                
+                <a href="rf2-usuarios-servicio.html" class="nav-card">
+                    <h3>RF2 - Registrar Usuario de Servicios</h3>
+                    <p>Un usuario puede darse de alta en la aplicación, usando los datos descritos en la descripción general del caso.</p>
+                </a>
+                
+                <a href="rf3-usuarios-conductor.html" class="nav-card">
+                    <h3>RF3 - Registrar Usuario Conductor</h3>
+                    <p>Un usuario que va a prestar servicios de transporte puede darse de alta en la aplicación, usando los datos descritos.</p>
+                </a>
+                
+                <a href="rf4-vehiculos.html" class="nav-card">
+                    <h3>RF4 - Registrar Vehículo para Usuario Conductor</h3>
+                    <p>Un conductor puede registrar un vehículo a su nombre con los datos indicados en la descripción general del caso.</p>
+                </a>
+                
+                <a href="rf5-disponibilidad.html" class="nav-card">
+                    <h3>RF5 - Registrar Disponibilidad</h3>
+                    <p>Registrar la disponibilidad de un usuario conductor y su vehículo para un servicio.</p>
+                </a>
+                
+                <a href="rf6-modificar-disponibilidad.html" class="nav-card">
+                    <h3>RF6 - Modificar Disponibilidad</h3>
+                    <p>Modificar la disponibilidad de un vehículo para servicios en términos de días y horarios.</p>
+                </a>
+                
+                <a href="rf7-puntos-geograficos.html" class="nav-card">
+                    <h3>RF7 - Registrar Punto Geográfico</h3>
+                    <p>Todos los usuarios pueden registrar puntos geográficos indicando nombre, dirección, coordenadas y ciudad.</p>
+                </a>
+                
+                <a href="rf8-solicitar-servicio.html" class="nav-card">
+                    <h3>RF8 - Solicitar Servicio</h3>
+                    <p>Un usuario puede solicitar un servicio particular, indicando punto de partida y punto de llegada.</p>
+                </a>
+                
+                <a href="rf9-finalizar-servicio.html" class="nav-card">
+                    <h3>RF9 - Finalizar Servicio</h3>
+                    <p>Finalizar un servicio y registrar revisiones.</p>
+                </a>
+                
+                <a href="rf10-revision-usuario.html" class="nav-card">
+                    <h3>RF10 - Dejar Revisión por Usuario</h3>
+                    <p>Un pasajero puede registrar una revisión a un conductor para un servicio prestado, dando una calificación y dejando un comentario.</p>
+                </a>
+                
+                <a href="rf11-consultar-revisiones.html" class="nav-card">
+                    <h3>RF11 - Dejar Revisión por Conductor</h3>
+                    <p>Un conductor puede registrar una revisión a un usuario de servicio para un servicio prestado, dando una calificación y dejando un comentario.</p>
+                </a>
+            </div>
+            
+            <h3 style="color: #667eea; margin: 30px 0 20px 0;">📊 Requerimientos Funcionales de Consulta (RFC)</h3>
+            <div class="nav-grid">
+                <a href="rfc1-historial-servicios.html" class="nav-card">
+                    <h3>RFC1 - Historial de Servicios</h3>
+                    <p>Consultar el historial completo de servicios por usuario.</p>
+                </a>
+
+                <a href="rfc2-top-conductores.html" class="nav-card">
+                    <h3>RFC2 - Top 20 Conductores</h3>
+                    <p>Mostrar los 20 conductores que más servicios han prestado, con número de servicios.</p>
+                </a>
+
+                <a href="rfc3-dinero-conductores.html" class="nav-card">
+                    <h3>RFC3 - Dinero por Conductores y Vehículos</h3>
+                    <p>Mostrar el total de dinero obtenido por conductores discriminado por vehículo y servicio (ajustado por comisión).</p>
+                </a>
+
+                <a href="rfc4-uso-por-ciudad.html" class="nav-card">
+                    <h3>RFC4 - Uso por Ciudad</h3>
+                    <p>Mostrar la utilización de servicios en una ciudad durante un rango de fechas (porcentaje y ordenado).</p>
+                </a>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+</body>
+</html>

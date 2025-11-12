@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF1 - Gestión de Ciudades - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏙️ RF1 - Gestión de Ciudades</h1>
+            <p>Registrar nuevas ciudades donde se prestarán servicios de transporte</p>
+        </div>
+        
+        <div class="content">
+            <!-- Sección: Registrar Ciudad -->
+            <div class="form-section">
+                <h2>📝 Registrar Nueva Ciudad</h2>
+                <form id="insertarCiudadForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_ciudad">ID Ciudad *</label>
+                            <input type="number" id="id_ciudad" name="id_ciudad" required 
+                                   placeholder="Ej: 1" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre Ciudad *</label>
+                            <input type="text" id="nombre" name="nombre" required 
+                                   placeholder="Ej: Bogotá">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Registrar Ciudad</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('insertarCiudadForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Actualizar Ciudad -->
+            <div class="form-section">
+                <h2>✏️ Actualizar Ciudad Existente</h2>
+                <form id="actualizarCiudadForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_ciudad_update">ID Ciudad *</label>
+                            <input type="number" id="id_ciudad_update" name="id_ciudad" required 
+                                   placeholder="ID de la ciudad a actualizar" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre_update">Nuevo Nombre *</label>
+                            <input type="text" id="nombre_update" name="nombre" required 
+                                   placeholder="Nuevo nombre de la ciudad">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Actualizar Ciudad</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('actualizarCiudadForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Consultas -->
+            <div class="form-section">
+                <h2>🔍 Consultar Ciudades</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="listarCiudades()">Listar Todas las Ciudades</button>
+                    <div class="form-group" style="flex: 1;">
+                        <label for="id_ciudad_consulta">Consultar Ciudad por ID</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="id_ciudad_consulta" name="id_ciudad_consulta" 
+                                   placeholder="ID de la ciudad" min="1" style="flex: 1;">
+                            <button class="btn btn-secondary" onclick="consultarCiudadPorId()">Consultar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección: Eliminar Ciudad -->
+            <div class="form-section" style="border-left-color: #dc3545;">
+                <h2>🗑️ Eliminar Ciudad</h2>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Atención:</strong> Eliminar una ciudad puede afectar otros registros relacionados.
+                </div>
+                <form id="eliminarCiudadForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_ciudad_eliminar">ID Ciudad a Eliminar *</label>
+                            <input type="number" id="id_ciudad_eliminar" name="id_ciudad" required 
+                                   placeholder="ID de la ciudad a eliminar" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Eliminar Ciudad</button>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Registrar nueva ciudad
+        document.getElementById('insertarCiudadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('insertarCiudadForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const result = await post(`/ciudades/insertar?${params}`);
+                showResult(result);
+                resetForm('insertarCiudadForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarCiudades, 1000);
+            } catch (error) {
+                showResult(`Error al registrar ciudad: ${error.message}`, true);
+            }
+        });
+        
+        // Actualizar ciudad
+        document.getElementById('actualizarCiudadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('actualizarCiudadForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const result = await put(`/ciudades/actualizar?${params}`);
+                showResult(result);
+                resetForm('actualizarCiudadForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarCiudades, 1000);
+            } catch (error) {
+                showResult(`Error al actualizar ciudad: ${error.message}`, true);
+            }
+        });
+        
+        // Eliminar ciudad
+        document.getElementById('eliminarCiudadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('eliminarCiudadForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de que desea eliminar esta ciudad?')) {
+                return;
+            }
+            
+            const idCiudad = document.getElementById('id_ciudad_eliminar').value;
+            
+            try {
+                const result = await del(`/ciudades/eliminar/${idCiudad}`);
+                showResult(result);
+                resetForm('eliminarCiudadForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarCiudades, 1000);
+            } catch (error) {
+                showResult(`Error al eliminar ciudad: ${error.message}`, true);
+            }
+        });
+        
+        // Listar todas las ciudades
+        async function listarCiudades() {
+            try {
+                const ciudades = await get('/ciudades/darCiudades');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(ciudades) && ciudades.length > 0) {
+                    const headers = ['ID Ciudad', 'Nombre'];
+                    const tableData = ciudades.map(ciudad => [ciudad.id_ciudad, ciudad.nombre]);
+                    resultsDiv.innerHTML = `
+                        <h4>🏙️ Lista de Ciudades (${ciudades.length} registros)</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">No se encontraron ciudades registradas.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al listar ciudades: ${error.message}`, true);
+            }
+        }
+        
+        // Consultar ciudad por ID
+        async function consultarCiudadPorId() {
+            const idCiudad = document.getElementById('id_ciudad_consulta').value;
+            
+            if (!idCiudad) {
+                showResult('Por favor ingrese un ID de ciudad válido.', true);
+                return;
+            }
+            
+            try {
+                const ciudad = await get(`/ciudades/darCiudad/${idCiudad}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (ciudad) {
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Ciudad Encontrada</h4>
+                        <div class="card">
+                            <p><strong>ID:</strong> ${ciudad.id_ciudad}</p>
+                            <p><strong>Nombre:</strong> ${ciudad.nombre}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="alert alert-warning">No se encontró una ciudad con ID ${idCiudad}.</p>`;
+                }
+            } catch (error) {
+                showResult(`Error al consultar ciudad: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar lista inicial al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            listarCiudades();
+        });
+    </script>
+</body>
+</html>

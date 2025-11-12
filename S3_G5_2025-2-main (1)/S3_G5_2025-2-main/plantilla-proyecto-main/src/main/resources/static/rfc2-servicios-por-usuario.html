@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC2 - Servicios por Usuario - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📊 RFC2 - Servicios por Usuario</h1>
+            <p>Consultar servicios realizados por usuario específico</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Consultar Servicios por Usuario -->
+            <div class="form-section">
+                <h2>🔍 Consultar Servicios por Usuario</h2>
+                <form id="consultarServiciosUsuarioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula_usuario">Cédula del Usuario *</label>
+                            <input type="number" id="cedula_usuario" name="cedula_usuario" required 
+                                   placeholder="Ej: 1234567890" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Consultar Servicios</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('consultarServiciosUsuarioForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Consultar con Filtros -->
+            <div class="form-section">
+                <h2>🔎 Consulta Avanzada con Filtros</h2>
+                <form id="consultarServiciosFiltrosForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula_usuario_filtros">Cédula del Usuario *</label>
+                            <input type="number" id="cedula_usuario_filtros" name="cedula_usuario" required 
+                                   placeholder="Ej: 1234567890" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="estado_filtro">Estado del Servicio</label>
+                            <select id="estado_filtro" name="estado">
+                                <option value="">Todos los estados</option>
+                                <option value="SOLICITADO">SOLICITADO</option>
+                                <option value="EN_CURSO">EN_CURSO</option>
+                                <option value="FINALIZADO">FINALIZADO</option>
+                                <option value="CANCELADO">CANCELADO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha_inicio_filtro">Fecha Inicio (desde)</label>
+                            <input type="date" id="fecha_inicio_filtro" name="fecha_inicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_fin_filtro">Fecha Fin (hasta)</label>
+                            <input type="date" id="fecha_fin_filtro" name="fecha_fin">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Consultar con Filtros</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('consultarServiciosFiltrosForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Estadísticas del Usuario -->
+            <div class="form-section">
+                <h2>📈 Estadísticas del Usuario</h2>
+                <form id="estadisticasUsuarioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula_estadisticas">Cédula del Usuario *</label>
+                            <input type="number" id="cedula_estadisticas" name="cedula_usuario" required 
+                                   placeholder="Ej: 1234567890" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Generar Estadísticas</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('estadisticasUsuarioForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Listados Rápidos -->
+            <div class="form-section">
+                <h2>⚡ Consultas Rápidas</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="listarTodosLosUsuarios()">Listar Todos los Usuarios</button>
+                    <button class="btn btn-secondary" onclick="listarUsuariosConServicios()">Usuarios con Servicios</button>
+                    <button class="btn btn-secondary" onclick="listarTodosLosServicios()">Todos los Servicios</button>
+                </div>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <h4>👤 Usuarios Registrados</h4>
+                        <div id="tabla-usuarios">
+                            <p class="alert alert-info">Cargando datos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Consultar servicios por usuario
+        document.getElementById('consultarServiciosUsuarioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('consultarServiciosUsuarioForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const cedula = document.getElementById('cedula_usuario').value;
+            
+            try {
+                const servicios = await get(`/servicios/darServiciosPorUsuario/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(servicios) && servicios.length > 0) {
+                    const headers = ['ID', 'Conductor', 'Fecha Inicio', 'Fecha Fin', 'Costo', 'Estado'];
+                    const tableData = servicios.map(servicio => [
+                        servicio.id,
+                        servicio.usuarioConductor?.usuario?.nombre || 'N/A',
+                        servicio.fecha_inicio ? new Date(servicio.fecha_inicio).toLocaleString() : 'N/A',
+                        servicio.fecha_fin ? new Date(servicio.fecha_fin).toLocaleString() : 'N/A',
+                        servicio.costo_total ? `$${servicio.costo_total.toLocaleString()}` : 'N/A',
+                        servicio.estado || 'N/A'
+                    ]);
+                    
+                    // Calcular estadísticas
+                    const totalServicios = servicios.length;
+                    const serviciosFinalizados = servicios.filter(s => s.estado === 'FINALIZADO').length;
+                    const costoTotal = servicios.reduce((sum, s) => sum + (s.costo_total || 0), 0);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Servicios del Usuario (Cédula: ${cedula})</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>Total Servicios</h5>
+                                <p style="font-size: 2em; margin: 0;">${totalServicios}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>Finalizados</h5>
+                                <p style="font-size: 2em; margin: 0;">${serviciosFinalizados}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>Costo Total</h5>
+                                <p style="font-size: 1.5em; margin: 0;">$${costoTotal.toLocaleString()}</p>
+                            </div>
+                        </div>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>👤 Usuarios Registrados</h4>
+                            <div id="tabla-usuarios">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla de usuarios
+                    setTimeout(listarTodosLosUsuarios, 500);
+                } else {
+                    showResult(`No se encontraron servicios para el usuario con cédula ${cedula}.`, true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar servicios: ${error.message}`, true);
+            }
+        });
+        
+        // Consultar servicios con filtros
+        document.getElementById('consultarServiciosFiltrosForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cedula = document.getElementById('cedula_usuario_filtros').value;
+            if (!cedula) {
+                showResult('Por favor ingrese la cédula del usuario.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const servicios = await get(`/servicios/darServiciosPorUsuarioConFiltros?${params}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(servicios) && servicios.length > 0) {
+                    const headers = ['ID', 'Conductor', 'Fecha Inicio', 'Fecha Fin', 'Costo', 'Estado'];
+                    const tableData = servicios.map(servicio => [
+                        servicio.id,
+                        servicio.usuarioConductor?.usuario?.nombre || 'N/A',
+                        servicio.fecha_inicio ? new Date(servicio.fecha_inicio).toLocaleString() : 'N/A',
+                        servicio.fecha_fin ? new Date(servicio.fecha_fin).toLocaleString() : 'N/A',
+                        servicio.costo_total ? `$${servicio.costo_total.toLocaleString()}` : 'N/A',
+                        servicio.estado || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🔎 Servicios Filtrados (Cédula: ${cedula})</h4>
+                        <p class="alert alert-info">Filtros aplicados - Total encontrados: ${servicios.length}</p>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>👤 Usuarios Registrados</h4>
+                            <div id="tabla-usuarios">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla de usuarios
+                    setTimeout(listarTodosLosUsuarios, 500);
+                } else {
+                    showResult(`No se encontraron servicios con los filtros aplicados para el usuario con cédula ${cedula}.`, true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar servicios con filtros: ${error.message}`, true);
+            }
+        });
+        
+        // Generar estadísticas del usuario
+        document.getElementById('estadisticasUsuarioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const cedula = document.getElementById('cedula_estadisticas').value;
+            if (!cedula) {
+                showResult('Por favor ingrese la cédula del usuario.', true);
+                return;
+            }
+            
+            try {
+                const estadisticas = await get(`/servicios/darEstadisticasUsuario/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (estadisticas) {
+                    resultsDiv.innerHTML = `
+                        <h4>📈 Estadísticas Detalladas del Usuario (Cédula: ${cedula})</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>📊 Total de Servicios</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${estadisticas.totalServicios || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>✅ Servicios Finalizados</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${estadisticas.serviciosFinalizados || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>⏳ Servicios En Curso</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${estadisticas.serviciosEnCurso || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>💰 Gasto Total</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(estadisticas.gastoTotal || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>📅 Promedio Mensual</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(estadisticas.promedioMensual || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF5722 0%, #D84315 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>❌ Servicios Cancelados</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${estadisticas.serviciosCancelados || 0}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>👤 Usuarios Registrados</h4>
+                            <div id="tabla-usuarios">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla de usuarios
+                    setTimeout(listarTodosLosUsuarios, 500);
+                } else {
+                    showResult(`No se pudieron obtener estadísticas para el usuario con cédula ${cedula}.`, true);
+                }
+            } catch (error) {
+                showResult(`Error al generar estadísticas: ${error.message}`, true);
+            }
+        });
+        
+        // Listar todos los usuarios
+        async function listarTodosLosUsuarios() {
+            try {
+                const usuarios = await get('/usuariosServicio/darUsuariosServicio');
+                const tablaDiv = document.getElementById('tabla-usuarios');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = usuarios.map(us => [
+                        us.id_usuario,
+                        us.usuario?.nombre || 'N/A',
+                        us.usuario?.correo || 'N/A',
+                        us.usuario?.celular || 'N/A'
+                    ]);
+                    tablaDiv.innerHTML = createTable(tableData, headers);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios de servicios registrados.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-usuarios');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar usuarios</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Listar usuarios con servicios
+        async function listarUsuariosConServicios() {
+            try {
+                const usuarios = await get('/servicios/darUsuariosConServicios');
+                const tablaDiv = document.getElementById('tabla-usuarios');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Total Servicios', 'Último Servicio'];
+                    const tableData = usuarios.map(usuario => [
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.totalServicios || 0,
+                        usuario.ultimoServicio ? new Date(usuario.ultimoServicio).toLocaleDateString() : 'N/A'
+                    ]);
+                    tablaDiv.innerHTML = `
+                        <h5>👥 Usuarios con Servicios (${usuarios.length})</h5>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios con servicios.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-usuarios');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar usuarios con servicios</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Listar todos los servicios
+        async function listarTodosLosServicios() {
+            try {
+                const servicios = await get('/servicios/darServicios');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(servicios) && servicios.length > 0) {
+                    const headers = ['ID', 'Usuario', 'Conductor', 'Fecha Inicio', 'Fecha Fin', 'Costo', 'Estado'];
+                    const tableData = servicios.map(servicio => [
+                        servicio.id,
+                        servicio.usuarioServicio?.usuario?.nombre || 'N/A',
+                        servicio.usuarioConductor?.usuario?.nombre || 'N/A',
+                        servicio.fecha_inicio ? new Date(servicio.fecha_inicio).toLocaleString() : 'N/A',
+                        servicio.fecha_fin ? new Date(servicio.fecha_fin).toLocaleString() : 'N/A',
+                        servicio.costo_total ? `$${servicio.costo_total.toLocaleString()}` : 'N/A',
+                        servicio.estado || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🚕 Todos los Servicios (${servicios.length})</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>👤 Usuarios Registrados</h4>
+                            <div id="tabla-usuarios">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla de usuarios
+                    setTimeout(listarTodosLosUsuarios, 500);
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron servicios registrados.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al cargar servicios: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar tabla inicial de usuarios
+            listarTodosLosUsuarios();
+        });
+    </script>
+</body>
+</html>

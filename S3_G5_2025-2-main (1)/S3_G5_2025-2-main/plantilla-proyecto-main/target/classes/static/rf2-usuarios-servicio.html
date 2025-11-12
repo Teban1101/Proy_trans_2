@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF2 - Usuarios de Servicios - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>👤 RF2 - Usuarios de Servicios</h1>
+            <p>Registrar usuarios que utilizarán los servicios de transporte</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Registrar Usuario de Servicios -->
+            <div class="form-section">
+                <h2>📝 Registrar Usuario de Servicios</h2>
+                <div class="alert alert-info">
+                    <strong>ℹ️ Información:</strong> Se registrará el usuario base y se asociará automáticamente como usuario de servicios.
+                </div>
+                <form id="registrarUsuarioServicioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula">Cédula *</label>
+                            <input type="number" id="cedula" name="cedula" required 
+                                   placeholder="Ej: 1234567890" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo *</label>
+                            <input type="text" id="nombre" name="nombre" required 
+                                   placeholder="Ej: Juan Pérez">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="correo">Correo Electrónico</label>
+                            <input type="email" id="correo" name="correo" 
+                                   placeholder="Ej: juan.perez@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="celular">Celular *</label>
+                            <input type="text" id="celular" name="celular" required 
+                                   placeholder="Ej: 3001234567">
+                        </div>
+                    </div>
+                    
+                    <!-- Sección de Tarjeta de Crédito (Opcional) -->
+                    <div style="border-top: 2px solid #e0e0e0; padding-top: 20px; margin-top: 20px;">
+                        <h3>💳 Tarjeta de Crédito (Opcional)</h3>
+                        <div class="alert alert-info">
+                            <strong>ℹ️ Nota:</strong> Puede agregar una tarjeta de crédito durante el registro. Esto es completamente opcional.
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="numero_tarjeta">Número de Tarjeta</label>
+                                <input type="text" id="numero_tarjeta" name="numero_tarjeta" 
+                                       placeholder="Ej: 4532123456789012">
+                            </div>
+                            <div class="form-group">
+                                <label for="nombre_tarjeta">Nombre en la Tarjeta</label>
+                                <input type="text" id="nombre_tarjeta" name="nombre_tarjeta" 
+                                       placeholder="Ej: JUAN PEREZ">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="vencimiento">Fecha de Vencimiento</label>
+                                <input type="date" id="vencimiento" name="vencimiento">
+                            </div>
+                            <div class="form-group">
+                                <label for="cvv">CVV</label>
+                                <input type="text" id="cvv" name="cvv" 
+                                       placeholder="Ej: 123" maxlength="4">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Registrar Usuario de Servicios</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('registrarUsuarioServicioForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Asociar Usuario Existente -->
+            <div class="form-section">
+                <h2>🔗 Asociar Usuario Existente como Usuario de Servicios</h2>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Nota:</strong> El usuario ya debe estar registrado en el sistema.
+                </div>
+                <form id="asociarUsuarioServicioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_usuario_existente">Cédula del Usuario Existente *</label>
+                            <input type="number" id="id_usuario_existente" name="id_usuario" required 
+                                   placeholder="Cédula del usuario a asociar" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Asociar como Usuario de Servicios</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('asociarUsuarioServicioForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Consultas -->
+            <div class="form-section">
+                <h2>🔍 Consultar Usuarios de Servicios</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="listarUsuariosServicio()">Listar Todos los Usuarios de Servicios</button>
+                    <button class="btn btn-secondary" onclick="listarTodosUsuarios()">Listar Todos los Usuarios</button>
+                </div>
+                <div class="form-group">
+                    <label for="cedula_consulta">Consultar Usuario por Cédula</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="cedula_consulta" name="cedula_consulta" 
+                               placeholder="Cédula del usuario" min="1" style="flex: 1;">
+                        <button class="btn btn-secondary" onclick="consultarUsuarioPorCedula()">Consultar Usuario</button>
+                        <button class="btn btn-secondary" onclick="consultarUsuarioServicioPorCedula()">Consultar Usuario Servicio</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección: Eliminar -->
+            <div class="form-section" style="border-left-color: #dc3545;">
+                <h2>🗑️ Eliminar Usuario de Servicios</h2>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Atención:</strong> Esto solo eliminará la asociación como usuario de servicios, no el usuario base.
+                </div>
+                <form id="eliminarUsuarioServicioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula_eliminar">Cédula del Usuario de Servicios *</label>
+                            <input type="number" id="cedula_eliminar" name="id_usuario" required 
+                                   placeholder="Cédula del usuario a desasociar" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Eliminar Usuario de Servicios</button>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <h4>👥 Usuarios de Servicios</h4>
+                        <div id="tabla-usuarios-servicio">
+                            <p class="alert alert-info">Cargando datos...</p>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <h4>📝 Todos los Usuarios</h4>
+                        <div id="tabla-todos-usuarios">
+                            <p class="alert alert-info">Cargando datos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Registrar usuario de servicios completo
+        document.getElementById('registrarUsuarioServicioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('registrarUsuarioServicioForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            // Extraer datos de tarjeta opcional
+            const numero_tarjeta = document.getElementById('numero_tarjeta').value?.trim();
+            const nombre_tarjeta = document.getElementById('nombre_tarjeta').value?.trim();
+            const vencimiento = document.getElementById('vencimiento').value?.trim();
+            const cvv = document.getElementById('cvv').value?.trim();
+            const cedula = document.getElementById('cedula').value;
+            
+            // Validar que si se ingresa uno de los campos de tarjeta, se ingresen todos
+            const tarjetaCamposIngresados = [numero_tarjeta, nombre_tarjeta, vencimiento, cvv].filter(v => v).length;
+            if (tarjetaCamposIngresados > 0 && tarjetaCamposIngresados < 4) {
+                showResult('Si desea agregar una tarjeta, debe completar todos los campos de tarjeta.', true);
+                return;
+            }
+            
+            try {
+                const result = await post(`/usuariosServicio/registrar?${params}`);
+                
+                // Si se registró correctamente y hay tarjeta, insertar la tarjeta
+                if (result.includes('correctamente') && numero_tarjeta) {
+                    const tarjetaParams = new URLSearchParams({
+                        numero: numero_tarjeta,
+                        nombre_tarjeta: nombre_tarjeta,
+                        vencimiento: vencimiento,
+                        cvv: parseInt(cvv),
+                        id_usuario: cedula
+                    }).toString();
+                    
+                    console.log('Enviando tarjeta con parámetros:', tarjetaParams);
+                    const resultadoTarjeta = await post(`/tarjetasCredito/insertar?${tarjetaParams}`);
+                    console.log('Resultado tarjeta:', resultadoTarjeta);
+                    showResult(`${result}. Tarjeta: ${resultadoTarjeta}`);
+                } else {
+                    showResult(result);
+                }
+                
+                resetForm('registrarUsuarioServicioForm');
+                // Actualizar listas automáticamente
+                setTimeout(() => {
+                    listarUsuariosServicio();
+                    listarTodosUsuarios();
+                }, 1000);
+            } catch (error) {
+                showResult(`Error al registrar usuario de servicios: ${error.message}`, true);
+            }
+        });
+        
+        // Asociar usuario existente
+        document.getElementById('asociarUsuarioServicioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('asociarUsuarioServicioForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const result = await post(`/usuariosServicio/insertar?${params}`);
+                showResult(result);
+                resetForm('asociarUsuarioServicioForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarUsuariosServicio, 1000);
+            } catch (error) {
+                showResult(`Error al asociar usuario de servicios: ${error.message}`, true);
+            }
+        });
+        
+        // Eliminar usuario de servicios
+        document.getElementById('eliminarUsuarioServicioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('eliminarUsuarioServicioForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de que desea eliminar este usuario de servicios?')) {
+                return;
+            }
+            
+            const cedula = document.getElementById('cedula_eliminar').value;
+            
+            try {
+                const result = await del(`/usuariosServicio/eliminar/${cedula}`);
+                showResult(result);
+                resetForm('eliminarUsuarioServicioForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarUsuariosServicio, 1000);
+            } catch (error) {
+                showResult(`Error al eliminar usuario de servicios: ${error.message}`, true);
+            }
+        });
+        
+        // Listar usuarios de servicios
+        async function listarUsuariosServicio() {
+            try {
+                const usuarios = await get('/usuariosServicio/darUsuariosServicio');
+                const tablaDiv = document.getElementById('tabla-usuarios-servicio');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = usuarios.map(us => [
+                        us.id_usuario,
+                        us.usuario?.nombre || 'N/A',
+                        us.usuario?.correo || 'N/A',
+                        us.usuario?.celular || 'N/A'
+                    ]);
+                    tablaDiv.innerHTML = createTable(tableData, headers);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios de servicios registrados.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-usuarios-servicio');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar usuarios de servicios</p>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Listar todos los usuarios
+        async function listarTodosUsuarios() {
+            try {
+                const usuarios = await get('/usuarios/darUsuarios');
+                const tablaDiv = document.getElementById('tabla-todos-usuarios');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = usuarios.map(usuario => [
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.correo || 'N/A',
+                        usuario.celular
+                    ]);
+                    tablaDiv.innerHTML = createTable(tableData, headers);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios registrados.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-todos-usuarios');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar usuarios</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Consultar usuario por cédula
+        async function consultarUsuarioPorCedula() {
+            const cedula = document.getElementById('cedula_consulta').value;
+            
+            if (!cedula) {
+                showResult('Por favor ingrese una cédula válida.', true);
+                return;
+            }
+            
+            try {
+                const usuario = await get(`/usuarios/darUsuario/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (usuario) {
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Usuario Encontrado</h4>
+                        <div class="card">
+                            <p><strong>Cédula:</strong> ${usuario.cedula}</p>
+                            <p><strong>Nombre:</strong> ${usuario.nombre}</p>
+                            <p><strong>Correo:</strong> ${usuario.correo || 'N/A'}</p>
+                            <p><strong>Celular:</strong> ${usuario.celular}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="alert alert-warning">No se encontró un usuario con cédula ${cedula}.</p>`;
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuario: ${error.message}`, true);
+            }
+        }
+        
+        // Consultar usuario de servicios por cédula
+        async function consultarUsuarioServicioPorCedula() {
+            const cedula = document.getElementById('cedula_consulta').value;
+            
+            if (!cedula) {
+                showResult('Por favor ingrese una cédula válida.', true);
+                return;
+            }
+            
+            try {
+                const usuarioServicio = await get(`/usuariosServicio/darUsuarioServicio/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (usuarioServicio) {
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Usuario de Servicios Encontrado</h4>
+                        <div class="card">
+                            <p><strong>Cédula:</strong> ${usuarioServicio.id_usuario}</p>
+                            <p><strong>Nombre:</strong> ${usuarioServicio.usuario?.nombre || 'N/A'}</p>
+                            <p><strong>Correo:</strong> ${usuarioServicio.usuario?.correo || 'N/A'}</p>
+                            <p><strong>Celular:</strong> ${usuarioServicio.usuario?.celular || 'N/A'}</p>
+                            <span class="status-badge status-active">Usuario de Servicios</span>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="alert alert-warning">No se encontró un usuario de servicios con cédula ${cedula}.</p>`;
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuario de servicios: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar todas las tablas iniciales
+            listarUsuariosServicio();
+            listarTodosUsuarios();
+        });
+    </script>
+</body>
+</html>

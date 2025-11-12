@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC1 - Historial de Servicios - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📊 RFC1 - Historial de Servicios</h1>
+            <p>Consultar el historial completo de todos los servicios pedidos por un usuario</p>
+        </div>
+        
+        <div class="content">
+            <!-- Información del RFC -->
+            <div class="alert alert-info">
+                <h4>📋 RFC1 - Descripción</h4>
+                <p>Esta consulta permite mostrar una lista detallada de todos los servicios que ha solicitado un usuario específico, incluyendo toda la información relevante como fechas, conductores, vehículos, costos, etc.</p>
+            </div>
+            
+            <!-- Sección: Consulta por Usuario -->
+            <div class="form-section">
+                <h2>🔍 Consultar Historial por Usuario</h2>
+                <form id="consultarHistorialForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="usuario_id">Cédula del Usuario *</label>
+                            <input type="number" id="usuario_id" name="usuario" required 
+                                   placeholder="Ingrese la cédula del usuario" min="1">
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: end;">
+                            <button type="submit" class="btn">Consultar Historial</button>
+                            <button type="button" class="btn btn-secondary" onclick="listarUsuariosServicio()">Ver Usuarios de Servicios</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Sección: Usuarios Disponibles -->
+            <div class="form-section">
+                <h2>👥 Usuarios de Servicios Registrados</h2>
+                <button class="btn btn-secondary" onclick="listarUsuariosServicio()">Listar Usuarios de Servicios</button>
+                <div id="usuarios-list"></div>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados del Historial</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Consultar historial por usuario
+        document.getElementById('consultarHistorialForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('consultarHistorialForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const usuarioId = document.getElementById('usuario_id').value;
+            
+            try {
+                // Primero verificar que el usuario existe
+                const usuario = await get(`/usuarios/darUsuario/${usuarioId}`);
+                if (!usuario) {
+                    showResult(`No se encontró un usuario con cédula ${usuarioId}.`, true);
+                    return;
+                }
+                
+                // Verificar que es usuario de servicios
+                const usuarioServicio = await get(`/usuariosServicio/darUsuarioServicio/${usuarioId}`);
+                if (!usuarioServicio) {
+                    showResult(`El usuario con cédula ${usuarioId} no está registrado como usuario de servicios.`, true);
+                    return;
+                }
+                
+                // Consultar historial
+                const historial = await get(`/servicios/rfc1?usuario=${usuarioId}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(historial) && historial.length > 0) {
+                    // Crear tabla con datos del historial
+                    const headers = [
+                        'ID Servicio',
+                        'Inicio',
+                        'Fin',
+                        'Distancia (km)',
+                        'Costo',
+                        'Tipo Servicio',
+                        'Cliente',
+                        'Conductor',
+                        'Vehículo',
+                        'Tipo Vehículo',
+                        'Nivel',
+                        'Ciudad'
+                    ];
+                    
+                    const tableData = historial.map(row => [
+                        row[0] || 'N/A', // ID_SERVICIO
+                        row[1] ? formatDate(row[1]) : 'N/A', // HORA_INICIO
+                        row[2] ? formatDate(row[2]) : 'En curso', // HORA_FIN
+                        row[3] || 'N/A', // DISTANCIA_KM
+                        row[4] ? formatCurrency(row[4]) : 'N/A', // COSTO_TOTAL
+                        row[5] || 'N/A', // TIPO_SERVICIO
+                        row[6] || 'N/A', // NOMBRE_CLIENTE
+                        row[8] || 'N/A', // NOMBRE_CONDUCTOR
+                        row[9] || 'N/A', // PLACA_VEHICULO
+                        row[10] || 'N/A', // TIPO_VEHICULO
+                        row[11] || 'N/A', // NIVEL_TRANSPORTE
+                        row[12] || 'N/A'  // CIUDAD_VEHICULO
+                    ]);
+                    
+                    // Calcular estadísticas
+                    const totalServicios = historial.length;
+                    const serviciosCompletados = historial.filter(row => row[2]).length; // tienen hora_fin
+                    const serviciosEnCurso = totalServicios - serviciosCompletados;
+                    const costoTotal = historial.reduce((sum, row) => sum + (parseFloat(row[4]) || 0), 0);
+                    const distanciaTotal = historial.reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Historial de Servicios - ${usuario.nombre} (${usuarioId})</h4>
+                        
+                        <!-- Estadísticas Resumen -->
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+                            <div class="card">
+                                <h4>📈 Total Servicios</h4>
+                                <p style="font-size: 2em; color: #667eea; margin: 0;">${totalServicios}</p>
+                            </div>
+                            <div class="card">
+                                <h4>✅ Completados</h4>
+                                <p style="font-size: 2em; color: #28a745; margin: 0;">${serviciosCompletados}</p>
+                            </div>
+                            <div class="card">
+                                <h4>🔄 En Curso</h4>
+                                <p style="font-size: 2em; color: #ffc107; margin: 0;">${serviciosEnCurso}</p>
+                            </div>
+                            <div class="card">
+                                <h4>💰 Costo Total</h4>
+                                <p style="font-size: 1.5em; color: #667eea; margin: 0;">${formatCurrency(costoTotal)}</p>
+                            </div>
+                            <div class="card">
+                                <h4>🛣️ Distancia Total</h4>
+                                <p style="font-size: 1.5em; color: #667eea; margin: 0;">${distanciaTotal.toFixed(2)} km</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabla Detallada -->
+                        <h4>📋 Detalle de Servicios</h4>
+                        ${createTable(tableData, headers)}
+                        
+                        <!-- Información Adicional -->
+                        <div class="alert alert-info" style="margin-top: 20px;">
+                            <strong>ℹ️ Información:</strong> Los servicios están ordenados por fecha de inicio (más recientes primero).
+                            Los servicios "En curso" no tienen fecha de finalización.
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="card">
+                            <h4>📭 No hay servicios registrados</h4>
+                            <p>El usuario <strong>${usuario.nombre}</strong> (${usuarioId}) no ha solicitado ningún servicio aún.</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                showResult(`Error al consultar historial: ${error.message}`, true);
+            }
+        });
+        
+        // Listar usuarios de servicios
+        async function listarUsuariosServicio() {
+            try {
+                const usuariosServicio = await get('/usuariosServicio/darUsuariosServicio');
+                const usuariosListDiv = document.getElementById('usuarios-list');
+                
+                if (Array.isArray(usuariosServicio) && usuariosServicio.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular', 'Acción'];
+                    const tableData = usuariosServicio.map(us => [
+                        us.id_usuario,
+                        us.usuario?.nombre || 'N/A',
+                        us.usuario?.correo || 'N/A',
+                        us.usuario?.celular || 'N/A',
+                        `<button class="btn" onclick="consultarHistorialPorUsuario(${us.id_usuario}, '${us.usuario?.nombre || 'Usuario'}')" style="padding: 5px 10px; font-size: 12px;">Ver Historial</button>`
+                    ]);
+                    
+                    usuariosListDiv.innerHTML = `
+                        <h4>👥 Usuarios de Servicios Disponibles (${usuariosServicio.length})</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    usuariosListDiv.innerHTML = '<p class="alert alert-info">No se encontraron usuarios de servicios registrados.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al listar usuarios de servicios: ${error.message}`, true);
+            }
+        }
+        
+        // Función auxiliar para consultar historial desde la tabla
+        function consultarHistorialPorUsuario(usuarioId, nombreUsuario) {
+            document.getElementById('usuario_id').value = usuarioId;
+            document.getElementById('consultarHistorialForm').dispatchEvent(new Event('submit'));
+        }
+        
+        // Función para exportar datos (opcional)
+        function exportarHistorial() {
+            const table = document.querySelector('.data-table');
+            if (!table) {
+                showResult('No hay datos para exportar.', true);
+                return;
+            }
+            
+            let csv = '';
+            const rows = table.querySelectorAll('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cols = rows[i].querySelectorAll('td, th');
+                const rowData = [];
+                
+                for (let j = 0; j < cols.length; j++) {
+                    rowData.push('"' + cols[j].innerText + '"');
+                }
+                
+                csv += rowData.join(',') + '\n';
+            }
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'historial_servicios.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showResult('Historial exportado exitosamente a CSV.');
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', function() {
+            listarUsuariosServicio();
+        });
+    </script>
+</body>
+</html>

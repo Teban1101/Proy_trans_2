@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Prueba RF7 - Debug</title>
+</head>
+<body>
+    <h1>Prueba de Conectividad RF7</h1>
+    <div id="status"></div>
+    <div id="results"></div>
+    
+    <script>
+        async function testConnection() {
+            const statusDiv = document.getElementById('status');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                statusDiv.innerHTML = 'Probando conexión...';
+                
+                // Probar endpoint directo
+                const response = await fetch('/puntosGeograficos/darPuntos');
+                statusDiv.innerHTML = `Estado de respuesta: ${response.status}`;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML = `
+                        <h3>Datos obtenidos:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const text = await response.text();
+                    resultsDiv.innerHTML = `
+                        <h3>Error en respuesta:</h3>
+                        <pre>${text}</pre>
+                    `;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `Error: ${error.message}`;
+                resultsDiv.innerHTML = `
+                    <h3>Detalles del error:</h3>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+        
+        // Ejecutar prueba al cargar
+        window.addEventListener('load', testConnection);
+    </script>
+</body>
+</html>

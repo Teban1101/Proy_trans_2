@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Completo - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Test Completo del Sistema</h1>
+            <p>Ejecutar una prueba completa de todos los requerimientos funcionales</p>
+        </div>
+        
+        <div class="content">
+            <!-- Control de Pruebas -->
+            <div class="form-section">
+                <h2>🎮 Control de Pruebas</h2>
+                <div class="form-row">
+                    <button class="btn" onclick="ejecutarTestCompleto()">🚀 Ejecutar Test Completo</button>
+                    <button class="btn btn-secondary" onclick="resetearDatos()">🗑️ Resetear Datos de Prueba</button>
+                    <button class="btn btn-secondary" onclick="clearResults()">🧹 Limpiar Resultados</button>
+                </div>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Importante:</strong> Asegúrese de que el backend esté ejecutándose en <code>http://localhost:8080</code> antes de ejecutar las pruebas.
+                </div>
+            </div>
+            
+            <!-- Estado de las Pruebas -->
+            <div class="form-section">
+                <h2>📊 Estado de las Pruebas</h2>
+                <div id="test-status" class="form-row">
+                    <div class="card">
+                        <h4>RF - Requerimientos Funcionales</h4>
+                        <div id="rf-status"></div>
+                    </div>
+                    <div class="card">
+                        <h4>RFC - Consultas</h4>
+                        <div id="rfc-status"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Datos de Prueba -->
+            <div class="form-section">
+                <h2>📋 Datos de Prueba</h2>
+                <div class="alert alert-info">
+                    <strong>ℹ️ Los siguientes datos se utilizarán para las pruebas:</strong>
+                    <ul>
+                        <li><strong>Ciudad:</strong> Bogotá (ID: 1)</li>
+                        <li><strong>Usuario Servicio:</strong> Juan Pérez (Cédula: 1234567890)</li>
+                        <li><strong>Usuario Conductor:</strong> Carlos Rodríguez (Cédula: 9876543210)</li>
+                        <li><strong>Vehículo:</strong> ABC123 - Toyota Corolla</li>
+                        <li><strong>Punto Origen:</strong> Centro Bogotá (ID: 1)</li>
+                        <li><strong>Punto Destino:</strong> Aeropuerto (ID: 2)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Resultados Detallados -->
+            <div class="results-section">
+                <h3>📋 Resultados Detallados</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        let testResults = {
+            rf: {},
+            rfc: {}
+        };
+        
+        // Datos de prueba
+        const testData = {
+            ciudad: { id_ciudad: 1, nombre: 'Bogotá' },
+            usuarioServicio: { cedula: 1234567890, nombre: 'Juan Pérez', correo: 'juan.perez@email.com', celular: '3001234567' },
+            usuarioConductor: { cedula: 9876543210, nombre: 'Carlos Rodríguez', correo: 'carlos.rodriguez@email.com', celular: '3201234567' },
+            vehiculo: { placa: 'ABC123', marca: 'Toyota', modelo: 'Corolla', color: 'Blanco', capacidad: 4 },
+            puntoOrigen: { id_punto: 1, nombre: 'Centro Bogotá', direccion: 'Carrera 7 con Calle 72', latitud: 4.651, longitud: -74.094 },
+            puntoDestino: { id_punto: 2, nombre: 'Aeropuerto El Dorado', direccion: 'Av. El Dorado #103-9', latitud: 4.701, longitud: -74.147 },
+            tarjeta: { numero: '1234567890123456', nombre_tarjeta: 'Juan Perez', cvv: 123 },
+            disponibilidad: { id_disponibilidad: 1, dia_semana: 1, hora_inicio: '2024-01-01T08:00:00Z', hora_fin: '2024-01-01T18:00:00Z' },
+            servicio: { id_servicio: 1001, distancia_km: 15.5 }
+        };
+        
+        // Ejecutar test completo
+        async function ejecutarTestCompleto() {
+            updateTestStatus('⏳ Iniciando test completo...', 'info');
+            
+            try {
+                // RF1 - Registrar ciudad
+                await testRF1();
+                
+                // RF2 - Registrar usuario de servicios
+                await testRF2();
+                
+                // RF3 - Registrar usuario conductor
+                await testRF3();
+                
+                // Preparar datos auxiliares necesarios
+                await prepararDatosAuxiliares();
+                
+                // RF4 - Registrar vehículo
+                await testRF4();
+                
+                // RF7 - Registrar puntos geográficos
+                await testRF7();
+                
+                // Registrar tarjeta de crédito (necesaria para RF8)
+                await registrarTarjeta();
+                
+                // RF5 - Registrar disponibilidad
+                await testRF5();
+                
+                // RF8 - Solicitar servicio
+                await testRF8();
+                
+                // RF9 - Finalizar servicio
+                await testRF9();
+                
+                // RF10 y RF11 - Revisiones
+                await testRF10();
+                await testRF11();
+                
+                // RFC - Consultas
+                await testRFC1();
+                await testRFC2();
+                await testRFC3();
+                await testRFC4();
+                
+                updateTestStatus('✅ Test completo finalizado exitosamente!', 'success');
+                
+            } catch (error) {
+                updateTestStatus(`❌ Error en el test: ${error.message}`, 'error');
+            }
+        }
+        
+        // RF1 - Registrar ciudad
+        async function testRF1() {
+            try {
+                const params = new URLSearchParams(testData.ciudad).toString();
+                const result = await post(`/ciudades/insertar?${params}`);
+                testResults.rf.rf1 = { success: true, message: result };
+                updateRFStatus('RF1', true);
+                addDetailedResult('RF1 - Registrar Ciudad', result, true);
+            } catch (error) {
+                testResults.rf.rf1 = { success: false, message: error.message };
+                updateRFStatus('RF1', false);
+                addDetailedResult('RF1 - Registrar Ciudad', error.message, false);
+            }
+        }
+        
+        // RF2 - Registrar usuario de servicios
+        async function testRF2() {
+            try {
+                const params = new URLSearchParams(testData.usuarioServicio).toString();
+                const result = await post(`/usuariosServicio/registrar?${params}`);
+                testResults.rf.rf2 = { success: true, message: result };
+                updateRFStatus('RF2', true);
+                addDetailedResult('RF2 - Registrar Usuario Servicios', result, true);
+            } catch (error) {
+                testResults.rf.rf2 = { success: false, message: error.message };
+                updateRFStatus('RF2', false);
+                addDetailedResult('RF2 - Registrar Usuario Servicios', error.message, false);
+            }
+        }
+        
+        // RF3 - Registrar usuario conductor
+        async function testRF3() {
+            try {
+                const params = new URLSearchParams(testData.usuarioConductor).toString();
+                const result = await post(`/usuariosConductor/registrar?${params}`);
+                testResults.rf.rf3 = { success: true, message: result };
+                updateRFStatus('RF3', true);
+                addDetailedResult('RF3 - Registrar Usuario Conductor', result, true);
+            } catch (error) {
+                testResults.rf.rf3 = { success: false, message: error.message };
+                updateRFStatus('RF3', false);
+                addDetailedResult('RF3 - Registrar Usuario Conductor', error.message, false);
+            }
+        }
+        
+        // Preparar datos auxiliares
+        async function prepararDatosAuxiliares() {
+            try {
+                // Tipos de servicio, vehículo, niveles, etc.
+                await post('/tiposServicio/insertar?id_tipo_servicio=1&nombre=Transporte de Pasajeros');
+                await post('/tiposVehiculo/insertar?id_tipo_vehiculo=1&nombre=Automóvil');
+                await post('/nivelesTransporte/insertar?id_nivel=1&nombre=Estándar');
+                await post('/tarifas/insertar?id_tarifa=1&valor_por_km=2500&id_tipo_servicio=1&id_nivel=1');
+                addDetailedResult('Preparación - Datos Auxiliares', 'Tipos de servicios, vehículos y tarifas configurados', true);
+            } catch (error) {
+                addDetailedResult('Preparación - Datos Auxiliares', error.message, false);
+            }
+        }
+        
+        // RF4 - Registrar vehículo
+        async function testRF4() {
+            try {
+                const vehiculoData = {
+                    ...testData.vehiculo,
+                    id_usuario: testData.usuarioConductor.cedula,
+                    id_tipo_vehiculo: 1,
+                    id_nivel: 1,
+                    id_ciudad: testData.ciudad.id_ciudad
+                };
+                const params = new URLSearchParams(vehiculoData).toString();
+                const result = await post(`/vehiculos/insertar?${params}`);
+                testResults.rf.rf4 = { success: true, message: result };
+                updateRFStatus('RF4', true);
+                addDetailedResult('RF4 - Registrar Vehículo', result, true);
+            } catch (error) {
+                testResults.rf.rf4 = { success: false, message: error.message };
+                updateRFStatus('RF4', false);
+                addDetailedResult('RF4 - Registrar Vehículo', error.message, false);
+            }
+        }
+        
+        // RF5 - Registrar disponibilidad
+        async function testRF5() {
+            try {
+                const disponibilidadData = {
+                    ...testData.disponibilidad,
+                    id_usuario: testData.usuarioConductor.cedula,
+                    id_vehiculo: testData.vehiculo.placa
+                };
+                const params = new URLSearchParams(disponibilidadData).toString();
+                const result = await post(`/disponibilidades/insertar?${params}`);
+                testResults.rf.rf5 = { success: true, message: result };
+                updateRFStatus('RF5', true);
+                addDetailedResult('RF5 - Registrar Disponibilidad', result, true);
+            } catch (error) {
+                testResults.rf.rf5 = { success: false, message: error.message };
+                updateRFStatus('RF5', false);
+                addDetailedResult('RF5 - Registrar Disponibilidad', error.message, false);
+            }
+        }
+        
+        // RF7 - Registrar puntos geográficos
+        async function testRF7() {
+            try {
+                // Punto origen
+                const origenData = { ...testData.puntoOrigen, id_ciudad: testData.ciudad.id_ciudad };
+                const paramsOrigen = new URLSearchParams(origenData).toString();
+                await post(`/puntosGeograficos/insertar?${paramsOrigen}`);
+                
+                // Punto destino
+                const destinoData = { ...testData.puntoDestino, id_ciudad: testData.ciudad.id_ciudad };
+                const paramsDestino = new URLSearchParams(destinoData).toString();
+                const result = await post(`/puntosGeograficos/insertar?${paramsDestino}`);
+                
+                testResults.rf.rf7 = { success: true, message: 'Puntos geográficos registrados correctamente' };
+                updateRFStatus('RF7', true);
+                addDetailedResult('RF7 - Registrar Puntos Geográficos', 'Origen y destino registrados', true);
+            } catch (error) {
+                testResults.rf.rf7 = { success: false, message: error.message };
+                updateRFStatus('RF7', false);
+                addDetailedResult('RF7 - Registrar Puntos Geográficos', error.message, false);
+            }
+        }
+        
+        // Registrar tarjeta de crédito
+        async function registrarTarjeta() {
+            try {
+                const tarjetaData = {
+                    ...testData.tarjeta,
+                    vencimiento: '2025-12-31',
+                    id_usuario: testData.usuarioServicio.cedula
+                };
+                const params = new URLSearchParams(tarjetaData).toString();
+                await post(`/tarjetasCredito/insertar?${params}`);
+                addDetailedResult('Preparación - Tarjeta de Crédito', 'Medio de pago registrado para usuario', true);
+            } catch (error) {
+                addDetailedResult('Preparación - Tarjeta de Crédito', error.message, false);
+            }
+        }
+        
+        // RF8 - Solicitar servicio
+        async function testRF8() {
+            try {
+                const servicioData = {
+                    ...testData.servicio,
+                    id_tipo_servicio: 1,
+                    id_usuario_servicio: testData.usuarioServicio.cedula,
+                    id_punto_origen: testData.puntoOrigen.id_punto,
+                    id_punto_destino: testData.puntoDestino.id_punto
+                };
+                const params = new URLSearchParams(servicioData).toString();
+                const result = await post(`/servicios/solicitarAuto?${params}`);
+                testResults.rf.rf8 = { success: true, message: result };
+                updateRFStatus('RF8', true);
+                addDetailedResult('RF8 - Solicitar Servicio', result, true);
+            } catch (error) {
+                testResults.rf.rf8 = { success: false, message: error.message };
+                updateRFStatus('RF8', false);
+                addDetailedResult('RF8 - Solicitar Servicio', error.message, false);
+            }
+        }
+        
+        // RF9 - Finalizar servicio
+        async function testRF9() {
+            try {
+                const result = await put(`/servicios/terminar/${testData.servicio.id_servicio}`);
+                testResults.rf.rf9 = { success: true, message: result };
+                updateRFStatus('RF9', true);
+                addDetailedResult('RF9 - Finalizar Servicio', result, true);
+            } catch (error) {
+                testResults.rf.rf9 = { success: false, message: error.message };
+                updateRFStatus('RF9', false);
+                addDetailedResult('RF9 - Finalizar Servicio', error.message, false);
+            }
+        }
+        
+        // RF10 - Revisión usuario
+        async function testRF10() {
+            try {
+                const revisionData = {
+                    id_revision: 1,
+                    calificacion: 5,
+                    comentario: 'Excelente servicio',
+                    id_servicio: testData.servicio.id_servicio,
+                    id_usuario: testData.usuarioServicio.cedula
+                };
+                const params = new URLSearchParams(revisionData).toString();
+                const result = await post(`/revisiones/usuario-servicio?${params}`);
+                testResults.rf.rf10 = { success: true, message: result };
+                updateRFStatus('RF10', true);
+                addDetailedResult('RF10 - Revisión Usuario Servicios', result, true);
+            } catch (error) {
+                testResults.rf.rf10 = { success: false, message: error.message };
+                updateRFStatus('RF10', false);
+                addDetailedResult('RF10 - Revisión Usuario Servicios', error.message, false);
+            }
+        }
+        
+        // RF11 - Revisión conductor
+        async function testRF11() {
+            try {
+                const revisionData = {
+                    id_revision: 2,
+                    calificacion: 5,
+                    comentario: 'Cliente puntual y educado',
+                    id_servicio: testData.servicio.id_servicio,
+                    id_usuario: testData.usuarioConductor.cedula
+                };
+                const params = new URLSearchParams(revisionData).toString();
+                const result = await post(`/revisiones/usuario-conductor?${params}`);
+                testResults.rf.rf11 = { success: true, message: result };
+                updateRFStatus('RF11', true);
+                addDetailedResult('RF11 - Revisión Usuario Conductor', result, true);
+            } catch (error) {
+                testResults.rf.rf11 = { success: false, message: error.message };
+                updateRFStatus('RF11', false);
+                addDetailedResult('RF11 - Revisión Usuario Conductor', error.message, false);
+            }
+        }
+        
+        // RFC1 - Historial de servicios
+        async function testRFC1() {
+            try {
+                const historial = await get(`/servicios/rfc1?usuario=${testData.usuarioServicio.cedula}`);
+                testResults.rfc.rfc1 = { success: true, data: historial };
+                updateRFCStatus('RFC1', true);
+                addDetailedResult('RFC1 - Historial Servicios', `Encontrados ${historial.length} servicios`, true);
+            } catch (error) {
+                testResults.rfc.rfc1 = { success: false, message: error.message };
+                updateRFCStatus('RFC1', false);
+                addDetailedResult('RFC1 - Historial Servicios', error.message, false);
+            }
+        }
+        
+        // RFC2 - Top conductores
+        async function testRFC2() {
+            try {
+                const topConductores = await get('/servicios/rfc2');
+                testResults.rfc.rfc2 = { success: true, data: topConductores };
+                updateRFCStatus('RFC2', true);
+                addDetailedResult('RFC2 - Top Conductores', `Encontrados ${topConductores.length} conductores`, true);
+            } catch (error) {
+                testResults.rfc.rfc2 = { success: false, message: error.message };
+                updateRFCStatus('RFC2', false);
+                addDetailedResult('RFC2 - Top Conductores', error.message, false);
+            }
+        }
+        
+        // RFC3 - Dinero por conductores
+        async function testRFC3() {
+            try {
+                const dineroAgregado = await get('/servicios/rfc3/agregado?comisionPct=15');
+                testResults.rfc.rfc3 = { success: true, data: dineroAgregado };
+                updateRFCStatus('RFC3', true);
+                addDetailedResult('RFC3 - Dinero Conductores', `Encontrados ${dineroAgregado.length} registros`, true);
+            } catch (error) {
+                testResults.rfc.rfc3 = { success: false, message: error.message };
+                updateRFCStatus('RFC3', false);
+                addDetailedResult('RFC3 - Dinero Conductores', error.message, false);
+            }
+        }
+        
+        // RFC4 - Uso por ciudad
+        async function testRFC4() {
+            try {
+                const fechaInicio = '2024-01-01T00:00:00Z';
+                const fechaFin = '2024-12-31T23:59:59Z';
+                const usoPorCiudad = await get(`/servicios/rfc4?ciudad=Bogotá&ini=${fechaInicio}&fin=${fechaFin}`);
+                testResults.rfc.rfc4 = { success: true, data: usoPorCiudad };
+                updateRFCStatus('RFC4', true);
+                addDetailedResult('RFC4 - Uso por Ciudad', `Encontrados ${usoPorCiudad.length} registros`, true);
+            } catch (error) {
+                testResults.rfc.rfc4 = { success: false, message: error.message };
+                updateRFCStatus('RFC4', false);
+                addDetailedResult('RFC4 - Uso por Ciudad', error.message, false);
+            }
+        }
+        
+        // Funciones auxiliares
+        function updateTestStatus(message, type) {
+            const statusDiv = document.getElementById('test-status');
+            statusDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+        
+        function updateRFStatus(rf, success) {
+            const statusDiv = document.getElementById('rf-status');
+            const existing = statusDiv.innerHTML;
+            const badge = success ? 
+                `<span class="status-badge status-active">${rf} ✓</span>` :
+                `<span class="status-badge status-inactive">${rf} ✗</span>`;
+            statusDiv.innerHTML = existing + badge + ' ';
+        }
+        
+        function updateRFCStatus(rfc, success) {
+            const statusDiv = document.getElementById('rfc-status');
+            const existing = statusDiv.innerHTML;
+            const badge = success ? 
+                `<span class="status-badge status-active">${rfc} ✓</span>` :
+                `<span class="status-badge status-inactive">${rfc} ✗</span>`;
+            statusDiv.innerHTML = existing + badge + ' ';
+        }
+        
+        function addDetailedResult(title, message, success) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result-item ${success ? 'result-success' : 'result-error'}`;
+            resultDiv.innerHTML = `
+                <strong>${success ? '✅' : '❌'} ${title}:</strong> ${message}
+                <small style="display: block; margin-top: 5px; opacity: 0.7;">
+                    ${new Date().toLocaleTimeString()}
+                </small>
+            `;
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        // Resetear datos de prueba
+        async function resetearDatos() {
+            if (!confirm('¿Está seguro de que desea eliminar todos los datos de prueba?')) {
+                return;
+            }
+            
+            try {
+                // Eliminar en orden inverso por dependencias
+                await del(`/servicios/eliminar/${testData.servicio.id_servicio}`);
+                await del(`/disponibilidades/eliminar/${testData.disponibilidad.id_disponibilidad}`);
+                await del(`/vehiculos/eliminar/${testData.vehiculo.placa}`);
+                await del(`/puntosGeograficos/eliminar/${testData.puntoOrigen.id_punto}`);
+                await del(`/puntosGeograficos/eliminar/${testData.puntoDestino.id_punto}`);
+                await del(`/usuariosServicio/eliminar/${testData.usuarioServicio.cedula}`);
+                await del(`/usuariosConductor/eliminar/${testData.usuarioConductor.cedula}`);
+                await del(`/usuarios/eliminar/${testData.usuarioServicio.cedula}`);
+                await del(`/usuarios/eliminar/${testData.usuarioConductor.cedula}`);
+                await del(`/ciudades/eliminar/${testData.ciudad.id_ciudad}`);
+                
+                showResult('Datos de prueba eliminados correctamente.');
+                
+                // Limpiar estado de pruebas
+                document.getElementById('rf-status').innerHTML = '';
+                document.getElementById('rfc-status').innerHTML = '';
+                testResults = { rf: {}, rfc: {} };
+                
+            } catch (error) {
+                showResult(`Error al resetear datos: ${error.message}`, true);
+            }
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTestStatus('Listo para ejecutar pruebas. Haga clic en "Ejecutar Test Completo" para comenzar.', 'info');
+        });
+    </script>
+</body>
+</html>

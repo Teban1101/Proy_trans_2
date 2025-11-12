@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF10 - Dejar Revision</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 30px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        h1 { 
+            color: #333; 
+            margin-bottom: 10px;
+            font-size: 24px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        .form-group { 
+            margin-bottom: 20px;
+        }
+        label { 
+            display: block;
+            color: #333; 
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        input, select, textarea { 
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus { 
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        textarea { 
+            resize: vertical;
+            min-height: 100px;
+        }
+        .star-rating {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .star {
+            font-size: 30px;
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.2s;
+        }
+        .star:hover, .star.selected {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        button { 
+            flex: 1;
+            background: #667eea;
+            color: white; 
+            border: none; 
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer; 
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        button:hover { 
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .btn-back {
+            background: #999;
+        }
+        .btn-back:hover {
+            background: #777;
+        }
+        .msg {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+        .msg.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .msg.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dejar Revision - Usuario a Conductor</h1>
+        <p class="subtitle">Deja tu opinion sobre el conductor del servicio</p>
+        
+        <form id="revisionForm">
+            <div class="form-group">
+                <label for="id_revision">ID Revision (auto):</label>
+                <input type="number" id="id_revision" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_servicio">ID Servicio:</label>
+                <input type="number" id="id_servicio" required>
+            </div>
+
+            <div class="form-group">
+                <label for="id_usuario">ID Conductor (cedula):</label>
+                <input type="number" id="id_usuario" required>
+            </div>
+
+            <div class="form-group">
+                <label>Calificacion (1-5 estrellas) *</label>
+                <div class="star-rating" id="stars"></div>
+                <input type="hidden" id="calificacion">
+            </div>
+
+            <div class="form-group">
+                <label for="comentario">Comentario (opcional):</label>
+                <textarea id="comentario" placeholder="Comparte tu opinion..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit">Enviar Revision</button>
+                <button type="button" class="btn-back" onclick="window.location.href='index.html'">Volver</button>
+            </div>
+        </form>
+
+        <div id="msg" class="msg"></div>
+    </div>
+
+    <script>
+    // Generar estrellas
+    const starsContainer = document.getElementById('stars');
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.textContent = '★';
+        star.onclick = () => seleccionarCalificacion(i);
+        starsContainer.appendChild(star);
+    }
+
+    function seleccionarCalificacion(valor) {
+        document.getElementById('calificacion').value = valor;
+        const stars = document.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < valor) {
+                star.classList.add('selected');
+            } else {
+                star.classList.remove('selected');
+            }
+        });
+    }
+
+    document.getElementById('revisionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const id_revision = document.getElementById('id_revision').value;
+        const id_servicio = document.getElementById('id_servicio').value;
+        const id_usuario = document.getElementById('id_usuario').value;
+        const calificacion = document.getElementById('calificacion').value;
+        const comentario = document.getElementById('comentario').value;
+        const msg = document.getElementById('msg');
+
+        if (!calificacion) {
+            msg.textContent = 'Debes seleccionar una calificacion';
+            msg.className = 'msg error';
+            return;
+        }
+
+        const resp = await fetch('/revisiones/usuario-servicio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id_revision=${id_revision}&calificacion=${calificacion}&comentario=${comentario}&id_servicio=${id_servicio}&id_usuario=${id_usuario}`
+        });
+
+        const text = await resp.text();
+        msg.textContent = text;
+        msg.className = 'msg ' + (resp.ok ? 'success' : 'error');
+
+        if (resp.ok) {
+            setTimeout(() => window.location.href = 'index.html', 2000);
+        }
+    });
+    </script>
+</body>
+</html>

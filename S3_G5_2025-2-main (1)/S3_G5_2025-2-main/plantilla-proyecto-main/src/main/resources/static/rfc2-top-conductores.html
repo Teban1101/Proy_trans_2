@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC2 - Top 20 Conductores - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 RFC2 - Top 20 Conductores</h1>
+            <p>Mostrar los 20 conductores que más servicios han prestado en la aplicación.</p>
+        </div>
+
+        <div class="content">
+            <div id="connection-status"></div>
+
+            <div class="form-section">
+                <h2>🔍 Ejecutar RFC2</h2>
+                <p>Presiona el botón para obtener los 20 conductores con más servicios.</p>
+                <div class="form-row">
+                    <button class="btn btn-primary" id="btn-ejecutar">Obtener Top 20 Conductores</button>
+                </div>
+            </div>
+
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="tabla-resultados">
+                    <p class="alert alert-info">Presiona el botón para ejecutar la consulta.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.getElementById('btn-ejecutar').addEventListener('click', async function() {
+            try {
+                showResult('Ejecutando RFC2...', false);
+                const datos = await get('/servicios/rfc2');
+                const div = document.getElementById('tabla-resultados');
+                if (Array.isArray(datos) && datos.length > 0) {
+                    const headers = ['Pos', 'Cédula Conductor', 'Nombre', 'Total Servicios'];
+                    const tableData = datos.map((row, idx) => [
+                        idx + 1,
+                        row[0],
+                        row[1],
+                        row[2]
+                    ]);
+                    div.innerHTML = `<h4>Top 20 Conductores</h4>${createTable(tableData, headers)}`;
+                    showResult(`✅ Se encontraron ${datos.length} conductores.`, false);
+                } else {
+                    div.innerHTML = '<p class="alert alert-info">No hay conductores registrados o no hay datos.</p>';
+                    showResult('No se encontraron resultados para RFC2.', true);
+                }
+            } catch (error) {
+                console.error('Error RFC2:', error);
+                showResult(`Error al ejecutar RFC2: ${error.message}`, true);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', showConnectionStatus);
+    </script>
+</body>
+</html>

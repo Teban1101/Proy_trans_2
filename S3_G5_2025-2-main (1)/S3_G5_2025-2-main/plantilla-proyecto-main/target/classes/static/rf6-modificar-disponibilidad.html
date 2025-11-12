@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF6 - Modificar Disponibilidad de Vehículo - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>✏️ RF6 - Modificar la Disponibilidad de un Vehículo para Servicios</h1>
+            <p>Un conductor puede modificar la disponibilidad en términos de días y horarios para las que prestará un servicio con su vehículo. No debe ser posible cambiar la disponibilidad si esta se superpone con otras disponibilidades del mismo conductor.</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Buscar Disponibilidad -->
+            <div class="form-section">
+                <h2>🔍 Buscar Disponibilidad a Modificar</h2>
+                <form id="buscarForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="conductor_buscar">Conductor</label>
+                            <select id="conductor_buscar" name="conductor">
+                                <option value="">Seleccionar conductor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dia_buscar">Día</label>
+                            <select id="dia_buscar" name="dia">
+                                <option value="">Todos los días</option>
+                                <option value="LUNES">Lunes</option>
+                                <option value="MARTES">Martes</option>
+                                <option value="MIERCOLES">Miércoles</option>
+                                <option value="JUEVES">Jueves</option>
+                                <option value="VIERNES">Viernes</option>
+                                <option value="SABADO">Sábado</option>
+                                <option value="DOMINGO">Domingo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="disponibilidad_id">ID Disponibilidad</label>
+                            <input type="number" id="disponibilidad_id" name="id" 
+                                   placeholder="ID específico">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Buscar Disponibilidades</button>
+                    <button type="button" class="btn btn-success" onclick="cargarTodasDisponibilidades()">Ver Todas</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('buscarForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Modificar Disponibilidad -->
+            <div class="form-section" id="modificarSeccion" style="display: none;">
+                <h2>✏️ Modificar Disponibilidad</h2>
+                <div class="alert alert-info">
+                    <strong>Nota:</strong> No se puede modificar una disponibilidad si los nuevos horarios se superponen con otras disponibilidades del mismo conductor.
+                </div>
+                <form id="modificarForm">
+                    <input type="hidden" id="modificar_id" name="id">
+                    <input type="hidden" id="modificar_conductor" name="id_conductor">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="conductor_nombre">Conductor</label>
+                            <input type="text" id="conductor_nombre" readonly class="readonly-field">
+                        </div>
+                        <div class="form-group">
+                            <label for="modificar_dia">Día de la Semana *</label>
+                            <select id="modificar_dia" name="dia" required>
+                                <option value="LUNES">Lunes</option>
+                                <option value="MARTES">Martes</option>
+                                <option value="MIERCOLES">Miércoles</option>
+                                <option value="JUEVES">Jueves</option>
+                                <option value="VIERNES">Viernes</option>
+                                <option value="SABADO">Sábado</option>
+                                <option value="DOMINGO">Domingo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modificar_hora_inicio">Hora de Inicio *</label>
+                            <input type="time" id="modificar_hora_inicio" name="hora_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modificar_hora_fin">Hora de Fin *</label>
+                            <input type="time" id="modificar_hora_fin" name="hora_fin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="modificar_tipo_servicio">Tipo de Servicio *</label>
+                            <select id="modificar_tipo_servicio" name="id_tipo_servicio" required>
+                                <option value="">Seleccionar tipo...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modificar_nivel_transporte">Nivel de Transporte</label>
+                            <select id="modificar_nivel_transporte" name="id_nivel_transporte">
+                                <option value="">Automático según vehículo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modificar_activa">Estado</label>
+                            <select id="modificar_activa" name="activa">
+                                <option value="true">Activa</option>
+                                <option value="false">Inactiva</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="modificar_observaciones">Observaciones</label>
+                            <textarea id="modificar_observaciones" name="observaciones" rows="3" 
+                                      placeholder="Observaciones adicionales"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <button type="submit" class="btn btn-warning">Actualizar Disponibilidad</button>
+                        <button type="button" class="btn btn-danger" onclick="eliminarDisponibilidad()">Eliminar Disponibilidad</button>
+                        <button type="button" class="btn btn-secondary" onclick="cancelarModificacion()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📅 Disponibilidades Encontradas</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <div id="tabla-disponibilidades">
+                            <p class="alert alert-info">Cargando disponibilidades...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Buscar disponibilidades
+        document.getElementById('buscarForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const conductor = formData.get('conductor');
+            const dia = formData.get('dia');
+            const id = formData.get('id');
+            
+            try {
+                let disponibilidades = [];
+                
+                if (id) {
+                    // Buscar por ID específico
+                    const disponibilidad = await get(`/disponibilidades/${id}`);
+                    if (disponibilidad) {
+                        disponibilidades = [disponibilidad];
+                    }
+                } else {
+                    // Buscar por filtros
+                    let url = '/disponibilidades/darDisponibilidades';
+                    const params = new URLSearchParams();
+                    
+                    if (conductor) params.append('conductor', conductor);
+                    if (dia) params.append('dia', dia);
+                    
+                    if (params.toString()) {
+                        url += '?' + params.toString();
+                    }
+                    
+                    disponibilidades = await get(url);
+                }
+                
+                mostrarDisponibilidades(disponibilidades);
+                
+                if (disponibilidades.length > 0) {
+                    showResult(`✅ Se encontraron ${disponibilidades.length} disponibilidad(es).`, false);
+                } else {
+                    showResult('No se encontraron disponibilidades con los criterios especificados.', true);
+                }
+            } catch (error) {
+                showResult(`Error al buscar disponibilidades: ${error.message}`, true);
+            }
+        });
+        
+        // Modificar disponibilidad
+        // Mantener la disponibilidad actualmente en edición para usar sus campos (p. ej. vehiculo)
+        window.currentDisponibilidad = null;
+
+        document.getElementById('modificarForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('modificarForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            // Validar que la hora de fin sea posterior a la hora de inicio
+            const horaInicio = document.getElementById('modificar_hora_inicio').value;
+            const horaFin = document.getElementById('modificar_hora_fin').value;
+            
+            if (horaInicio >= horaFin) {
+                showResult('La hora de fin debe ser posterior a la hora de inicio.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const disponibilidadData = Object.fromEntries(formData.entries());
+            const id = disponibilidadData.id;
+
+            // Construir parámetros que espera el backend: id_disponibilidad, dia_semana (integer), hora_inicio (ISO), hora_fin (ISO), id_usuario, id_vehiculo
+            try {
+                const params = new URLSearchParams();
+                params.append('id_disponibilidad', id);
+
+                // Dia puede venir en texto (LUNES) o número; mapear nombres a números
+                const dayMap = { 'LUNES': 1, 'MARTES': 2, 'MIERCOLES': 3, 'JUEVES': 4, 'VIERNES': 5, 'SABADO': 6, 'DOMINGO': 7 };
+                let diaVal = disponibilidadData.dia ?? disponibilidadData.dia_semana ?? disponibilidadData.diaSemana ?? '';
+                if (diaVal && isNaN(diaVal)) {
+                    diaVal = dayMap[String(diaVal).toUpperCase()] ?? '';
+                }
+                if (diaVal !== '') params.append('dia_semana', String(diaVal));
+
+                // Convertir inputs time (HH:MM) a ISO (usar fecha actual)
+                function timeToIso(timeStr) {
+                    if (!timeStr) return null;
+                    const [hh, mm] = timeStr.split(':').map(s => parseInt(s, 10));
+                    const d = new Date();
+                    d.setHours(hh, mm, 0, 0);
+                    return d.toISOString();
+                }
+
+                const horaInicioVal = disponibilidadData.hora_inicio ?? disponibilidadData.horaInicio ?? '';
+                const horaFinVal = disponibilidadData.hora_fin ?? disponibilidadData.horaFin ?? '';
+                const hiIso = timeToIso(horaInicioVal);
+                const hfIso = timeToIso(horaFinVal);
+                if (hiIso) params.append('hora_inicio', hiIso);
+                if (hfIso) params.append('hora_fin', hfIso);
+
+                // id_usuario: usar el hidden modificar_conductor (ya poblado) o intentar extraer de currentDisponibilidad
+                let idUsuario = disponibilidadData.id_conductor ?? disponibilidadData.idConductor ?? '';
+                if (!idUsuario && window.currentDisponibilidad) {
+                    idUsuario = window.currentDisponibilidad.usuario?.cedula ?? window.currentDisponibilidad.usuario?.id_usuario ?? '';
+                }
+                if (idUsuario) params.append('id_usuario', String(idUsuario));
+
+                // id_vehiculo: preferir el vehiculo de la disponibilidad actual
+                let idVehiculo = window.currentDisponibilidad?.vehiculo?.placa ?? window.currentDisponibilidad?.id_vehiculo ?? disponibilidadData.id_vehiculo ?? disponibilidadData.idVehiculo ?? '';
+                if (idVehiculo) params.append('id_vehiculo', String(idVehiculo));
+
+                // Llamar al endpoint correcto: PUT /disponibilidades/actualizar
+                const response = await makeRequest('/disponibilidades/actualizar', { method: 'PUT', body: params, headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+
+                if (response) {
+                    showResult(`✅ Disponibilidad actualizada exitosamente.`, false);
+                    cancelarModificacion();
+                    cargarTodasDisponibilidades(); // Recargar la tabla
+                } else {
+                    showResult('Error al actualizar la disponibilidad.', true);
+                }
+            } catch (error) {
+                if (error.message.includes('superpone') || error.message.includes('conflicto')) {
+                    showResult('No se puede modificar: los horarios se superponen con otra disponibilidad del conductor.', true);
+                } else {
+                    showResult(`Error al actualizar disponibilidad: ${error.message}`, true);
+                }
+            }
+        });
+        
+        // Mostrar disponibilidad para modificar
+        function mostrarDisponibilidadParaModificar(disponibilidad) {
+            // Aceptar varias formas de la estructura JSON (id, id_disponibilidad, usuario.cedula, etc.)
+            const id = disponibilidad.id ?? disponibilidad.id_disponibilidad ?? disponibilidad.idDisponibilidad ?? '';
+            document.getElementById('modificar_id').value = id;
+
+            // conductor: puede venir como id_conductor, usuario.cedula, usuario.id_usuario, o anidado
+            const idConductor = disponibilidad.id_conductor ?? disponibilidad.idConductor ?? disponibilidad.usuario?.cedula ?? disponibilidad.usuario?.id_usuario ?? disponibilidad.usuario?.id ?? (disponibilidad.usuarioConductor?.usuario?.cedula ?? disponibilidad.usuarioConductor?.id_usuario ?? disponibilidad.usuarioConductor?.id) ?? '';
+            document.getElementById('modificar_conductor').value = idConductor;
+
+            // nombre del conductor si está disponible
+            const nombreConductor = disponibilidad.usuarioConductor?.usuario?.nombre ?? disponibilidad.usuario?.nombre ?? disponibilidad.usuarioConductor?.nombre ?? 'N/A';
+            document.getElementById('conductor_nombre').value = nombreConductor;
+
+            // Día y horas: soportar dia/dia_semana y hora_inicio/hora_fin o variantes
+            document.getElementById('modificar_dia').value = disponibilidad.dia ?? disponibilidad.dia_semana ?? disponibilidad.diaSemana ?? '';
+            document.getElementById('modificar_hora_inicio').value = disponibilidad.hora_inicio ?? disponibilidad.horaInicio ?? disponibilidad.HORA_INICIO ?? '';
+            document.getElementById('modificar_hora_fin').value = disponibilidad.hora_fin ?? disponibilidad.horaFin ?? disponibilidad.HORA_FIN ?? '';
+
+            document.getElementById('modificar_tipo_servicio').value = disponibilidad.id_tipo_servicio ?? disponibilidad.idTipoServicio ?? '';
+            document.getElementById('modificar_nivel_transporte').value = disponibilidad.id_nivel_transporte ?? disponibilidad.idNivelTransporte ?? '';
+            document.getElementById('modificar_activa').value = (disponibilidad.activa === undefined || disponibilidad.activa === null) ? 'true' : (disponibilidad.activa ? 'true' : 'false');
+            document.getElementById('modificar_observaciones').value = disponibilidad.observaciones ?? disponibilidad.observacion ?? '';
+
+            // Guardar la disponibilidad actual para usar datos no presentes en el formulario (p.ej. vehiculo)
+            window.currentDisponibilidad = disponibilidad;
+
+            document.getElementById('modificarSeccion').style.display = 'block';
+            document.getElementById('modificarSeccion').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Cancelar modificación
+        function cancelarModificacion() {
+            document.getElementById('modificarSeccion').style.display = 'none';
+            resetForm('modificarForm');
+        }
+        
+        // Eliminar disponibilidad
+        async function eliminarDisponibilidad() {
+            const id = document.getElementById('modificar_id').value;
+            const conductor = document.getElementById('conductor_nombre').value;
+            const dia = document.getElementById('modificar_dia').value;
+            
+            if (!confirm(`¿Está seguro de que desea eliminar la disponibilidad del conductor "${conductor}" para ${dia}?`)) {
+                return;
+            }
+            
+            try {
+                await deleteRequest(`/disponibilidades/${id}`);
+                showResult(`✅ Disponibilidad eliminada exitosamente.`, false);
+                cancelarModificacion();
+                cargarTodasDisponibilidades(); // Recargar la tabla
+            } catch (error) {
+                showResult(`Error al eliminar disponibilidad: ${error.message}`, true);
+            }
+        }
+        
+        // Mostrar disponibilidades en la tabla (vista SQL igual a RF5)
+        function mostrarDisponibilidades(disponibilidades) {
+            const tablaDiv = document.getElementById('tabla-disponibilidades');
+
+            if (Array.isArray(disponibilidades) && disponibilidades.length > 0) {
+                const headers = ['ID_DISPONIBILIDAD', 'DIA_SEMANA', 'HORA_INICIO', 'HORA_FIN', 'ID_USUARIO / NOMBRE', 'ID_VEHICULO', 'Acciones'];
+
+                const tableData = disponibilidades.map(disp => {
+                    const id_disp = disp.id_disponibilidad ?? disp.id ?? disp.idDisponibilidad ?? '';
+                    const dia = disp.dia_semana ?? disp.dia ?? '';
+                    const inicio = disp.hora_inicio ?? disp.horaInicio ?? '';
+                    const fin = disp.hora_fin ?? disp.horaFin ?? '';
+                    // id usuario y nombre están en usuario.cedula y usuario.nombre según la API
+                    const id_usuario = disp.usuario?.cedula ?? disp.usuario?.id_usuario ?? disp.id_usuario ?? '';
+                    const nombre_conductor = disp.usuario?.nombre ?? disp.usuarioConductor?.usuario?.nombre ?? '';
+                    const id_vehiculo = disp.vehiculo?.placa ?? disp.id_vehiculo ?? disp.idVehiculo ?? '';
+
+                    const btn = `<button onclick="mostrarDisponibilidadParaModificar(${JSON.stringify(disp).replace(/"/g, '&quot;')})" class="btn btn-sm">Modificar</button>`;
+
+                    const idUsuarioDisplay = (id_usuario ? String(id_usuario) : '') + (nombre_conductor ? (' / ' + nombre_conductor) : '');
+
+                    return [id_disp, dia, inicio, fin, idUsuarioDisplay, id_vehiculo, btn];
+                });
+
+                tablaDiv.innerHTML = `
+                    <h4>📅 Disponibilidades (vista SQL) — registros: ${disponibilidades.length}</h4>
+                    ${createTable(tableData, headers)}
+                `;
+            } else {
+                tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron disponibilidades.</p>';
+            }
+        }
+        
+        // Cargar todas las disponibilidades
+        async function cargarTodasDisponibilidades() {
+            try {
+                const disponibilidades = await get('/disponibilidades/darDisponibilidades');
+                mostrarDisponibilidades(disponibilidades);
+                showResult('✅ Mostrando todas las disponibilidades registradas.', false);
+            } catch (error) {
+                showResult(`Error al cargar disponibilidades: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar conductores en el select
+        async function cargarConductores() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const select = document.getElementById('conductor_buscar');
+                
+                select.innerHTML = '<option value="">Seleccionar conductor...</option>';
+                
+                if (Array.isArray(conductores)) {
+                    conductores.forEach(conductor => {
+                        const option = document.createElement('option');
+                        option.value = conductor.id_usuario;
+                        option.textContent = `${conductor.id_usuario} - ${conductor.usuario?.nombre || 'Sin nombre'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar conductores:', error);
+            }
+        }
+        
+        // Cargar tipos de servicio
+        async function cargarTiposServicio() {
+            try {
+                const tipos = await get('/tiposServicio/darTiposServicio');
+                const select = document.getElementById('modificar_tipo_servicio');
+                
+                select.innerHTML = '<option value="">Seleccionar tipo...</option>';
+                
+                if (Array.isArray(tipos)) {
+                    tipos.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.id;
+                        option.textContent = tipo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar tipos de servicio:', error);
+            }
+        }
+        
+        // Cargar niveles de transporte
+        async function cargarNivelesTransporte() {
+            try {
+                const niveles = await get('/nivelesTransporte/darNivelesTransporte');
+                const select = document.getElementById('modificar_nivel_transporte');
+                
+                select.innerHTML = '<option value="">Automático según vehículo</option>';
+                
+                if (Array.isArray(niveles)) {
+                    niveles.forEach(nivel => {
+                        const option = document.createElement('option');
+                        option.value = nivel.id;
+                        option.textContent = nivel.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar niveles de transporte:', error);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar selects
+            cargarConductores();
+            cargarTiposServicio();
+            cargarNivelesTransporte();
+            
+            // Cargar tabla inicial
+            cargarTodasDisponibilidades();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF5 - Registrar Disponibilidad de Usuario Conductor - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📅 RF5 - Registrar la Disponibilidad de un Usuario Conductor y su Vehículo para un Servicio</h1>
+            <p>Un conductor puede seleccionar días y rangos horarios en los cuales prestará diferentes tipos de servicios (transporte de pasajeros, entrega de comida, transporte de mercancías). En caso de prestar el servicio de transporte de pasajeros, el modelo y capacidad del vehículo determinarán el nivel de este (Estándar, Confort y Large). No es posible tener disponibilidades que se superpongan para un mismo conductor.</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Registrar Disponibilidad -->
+            <div class="form-section">
+                <h2>📅 Registrar Nueva Disponibilidad</h2>
+                <form id="disponibilidadForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="conductor_cedula">Conductor *</label>
+                            <select id="conductor_cedula" name="id_usuario" required>
+                                <option value="">Seleccionar conductor...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="dia_semana">Día de la Semana *</label>
+                            <select id="dia_semana" name="dia_semana" required>
+                                <option value="">Seleccionar día...</option>
+                                <option value="1">Lunes</option>
+                                <option value="2">Martes</option>
+                                <option value="3">Miércoles</option>
+                                <option value="4">Jueves</option>
+                                <option value="5">Viernes</option>
+                                <option value="6">Sábado</option>
+                                <option value="7">Domingo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="hora_inicio">Hora de Inicio *</label>
+                            <input type="time" id="hora_inicio" name="hora_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hora_fin">Hora de Fin *</label>
+                            <input type="time" id="hora_fin" name="hora_fin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo_servicio">Tipo de Servicio *</label>
+                            <select id="tipo_servicio" name="id_tipo_servicio" required>
+                                <option value="">Seleccionar tipo...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nivel_transporte">Nivel de Transporte (Solo para pasajeros)</label>
+                            <select id="nivel_transporte" name="id_nivel_transporte">
+                                <option value="">Automático según vehículo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vehiculo">Vehículo del Conductor</label>
+                            <select id="vehiculo" name="id_vehiculo" disabled>
+                                <option value="">Seleccione primero un conductor</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="observaciones">Observaciones</label>
+                            <textarea id="observaciones" name="observaciones" rows="3" 
+                                      placeholder="Observaciones adicionales sobre la disponibilidad"></textarea>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Registrar Disponibilidad</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('disponibilidadForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📅 Disponibilidades Registradas</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <div id="tabla-disponibilidades">
+                            <p class="alert alert-info">Cargando disponibilidades...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Registrar disponibilidad
+        document.getElementById('disponibilidadForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('disponibilidadForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            // Validar que la hora de fin sea posterior a la hora de inicio
+            const horaInicio = document.getElementById('hora_inicio').value;
+            const horaFin = document.getElementById('hora_fin').value;
+            
+            if (horaInicio >= horaFin) {
+                showResult('La hora de fin debe ser posterior a la hora de inicio.', true);
+                return;
+            }
+            
+                // Asegurar que enviamos los nombres que el controlador espera
+                const form = document.getElementById('disponibilidadForm');
+                const fd = new FormData(form);
+
+                // Generar un id_disponibilidad único en el cliente (la tabla no tiene auto-increment en este esquema)
+                const generatedId = Math.floor(Date.now() / 1000); // segundos desde epoch - como entero
+                fd.set('id_disponibilidad', generatedId);
+
+                // Normalizar nombres de campos: ya usamos name=id_usuario y name=dia_semana en el form
+                // Convertir hora_inicio/hora_fin (HH:MM) a ISO OffsetDateTime para que Spring los parsee
+                const horaInicioInput = fd.get('hora_inicio');
+                const horaFinInput = fd.get('hora_fin');
+                function timeToIso(timeStr) {
+                    if (!timeStr) return null;
+                    const [hh, mm] = timeStr.split(':').map(s => parseInt(s, 10));
+                    const d = new Date();
+                    d.setHours(hh, mm, 0, 0);
+                    return d.toISOString();
+                }
+                fd.set('hora_inicio', timeToIso(horaInicioInput));
+                fd.set('hora_fin', timeToIso(horaFinInput));
+
+                // Construir objeto plano para el post (usaremos x-www-form-urlencoded para mayor compatibilidad con el backend)
+                const params = new URLSearchParams();
+                for (const pair of fd.entries()) {
+                    if (pair[1] !== null && pair[1] !== undefined) params.append(pair[0], pair[1]);
+                }
+                const disponibilidadData = Object.fromEntries(fd.entries());
+            
+            try {
+                // Endpoint actual en el backend: /disponibilidades/insertar
+                // Enviar como application/x-www-form-urlencoded para evitar problemas de binding con FormData
+                const response = await makeRequest('/disponibilidades/insertar', {
+                    method: 'POST',
+                    body: params,
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+                
+                if (response) {
+                    showResult(`✅ Disponibilidad registrada exitosamente para ${disponibilidadData.dia} de ${horaInicio} a ${horaFin}`, false);
+                    resetForm('disponibilidadForm');
+                    cargarDisponibilidades(); // Recargar la tabla
+                } else {
+                    showResult('Error al registrar la disponibilidad.', true);
+                }
+            } catch (error) {
+                showResult(`Error al registrar disponibilidad: ${error.message}`, true);
+            }
+        });
+        
+        // Cargar conductores en el select
+        async function cargarConductores() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const select = document.getElementById('conductor_cedula');
+                
+                select.innerHTML = '<option value="">Seleccionar conductor...</option>';
+                
+                if (Array.isArray(conductores)) {
+                    conductores.forEach(conductor => {
+                        const option = document.createElement('option');
+                        option.value = conductor.id_usuario;
+                        option.textContent = `${conductor.id_usuario} - ${conductor.usuario?.nombre || 'Sin nombre'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar conductores:', error);
+            }
+        }
+        
+        // Cargar tipos de servicio
+        async function cargarTiposServicio() {
+            try {
+                const tipos = await get('/tiposServicio/darTiposServicio');
+                const select = document.getElementById('tipo_servicio');
+                
+                select.innerHTML = '<option value="">Seleccionar tipo...</option>';
+                
+                if (Array.isArray(tipos)) {
+                    tipos.forEach(tipo => {
+                        const option = document.createElement('option');
+                        option.value = tipo.id;
+                        option.textContent = tipo.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar tipos de servicio:', error);
+            }
+        }
+        
+        // Cargar niveles de transporte
+        async function cargarNivelesTransporte() {
+            try {
+                const niveles = await get('/nivelesTransporte/darNivelesTransporte');
+                const select = document.getElementById('nivel_transporte');
+                
+                select.innerHTML = '<option value="">Automático según vehículo</option>';
+                
+                if (Array.isArray(niveles)) {
+                    niveles.forEach(nivel => {
+                        const option = document.createElement('option');
+                        option.value = nivel.id;
+                        option.textContent = nivel.nombre;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar niveles de transporte:', error);
+            }
+        }
+        
+        // Cargar vehículos del conductor seleccionado
+        async function cargarVehiculosConductor(conductorId) {
+            const selectVehiculo = document.getElementById('vehiculo');
+            
+            if (!conductorId) {
+                selectVehiculo.innerHTML = '<option value="">Seleccione primero un conductor</option>';
+                selectVehiculo.disabled = true;
+                return;
+            }
+            
+            try {
+                const vehiculos = await get(`/vehiculos/conductor/${conductorId}`);
+                selectVehiculo.innerHTML = '<option value="">Seleccionar vehículo...</option>';
+                
+                if (Array.isArray(vehiculos) && vehiculos.length > 0) {
+                    vehiculos.forEach(vehiculo => {
+                        const option = document.createElement('option');
+                        option.value = vehiculo.placa;
+                        option.textContent = `${vehiculo.placa} - ${vehiculo.marca} ${vehiculo.modelo} (${vehiculo.capacidad} pasajeros)`;
+                        selectVehiculo.appendChild(option);
+                    });
+                    selectVehiculo.disabled = false;
+                } else {
+                    selectVehiculo.innerHTML = '<option value="">Este conductor no tiene vehículos registrados</option>';
+                    selectVehiculo.disabled = true;
+                }
+            } catch (error) {
+                selectVehiculo.innerHTML = '<option value="">Error al cargar vehículos</option>';
+                selectVehiculo.disabled = true;
+                console.error('Error al cargar vehículos del conductor:', error);
+            }
+        }
+        
+        // Cargar disponibilidades registradas
+        async function cargarDisponibilidades() {
+            try {
+                const disponibilidades = await get('/disponibilidades/darDisponibilidades');
+                const tablaDiv = document.getElementById('tabla-disponibilidades');
+
+                // Mostrar la tabla tal como está en la base de datos (columnas SQL)
+                // Columnas: ID_DISPONIBILIDAD, DIA_SEMANA, HORA_INICIO, HORA_FIN, ID_USUARIO, ID_VEHICULO
+                if (Array.isArray(disponibilidades) && disponibilidades.length > 0) {
+                    const headers = ['ID_DISPONIBILIDAD', 'DIA_SEMANA', 'HORA_INICIO', 'HORA_FIN', 'ID_USUARIO / NOMBRE', 'ID_VEHICULO'];
+
+                    const tableData = disponibilidades.map(disp => {
+                        // extraer valores con posibles nombres de propiedad (soporte a varias formas de serialización)
+                        const id_disp = disp.id_disponibilidad ?? disp.idDisponibilidad ?? disp.ID_DISPONIBILIDAD ?? disp.id;
+                        const dia = disp.dia_semana ?? disp.dia ?? disp.DIA_SEMANA ?? disp.diaSemana;
+                        const inicio = disp.hora_inicio ?? disp.horaInicio ?? disp.HORA_INICIO ?? disp.hora_inicio_string ?? disp.hora_inicio_str;
+                        const fin = disp.hora_fin ?? disp.horaFin ?? disp.HORA_FIN ?? disp.hora_fin_string ?? disp.hora_fin_str;
+                        // id usuario puede venir anidado en usuario o como id_usuario
+                        // Obtener un ID numérico de usuario buscando en varias posibles rutas del JSON
+                        let id_usuario = '';
+                        try {
+                            const candidates = [
+                                disp.id_usuario, disp.idUsuario, disp.ID_USUARIO,
+                                // el JSON actual expone la cédula del conductor como "usuario.cedula"
+                                disp.usuario?.cedula, disp.usuario?.id_usuario, disp.usuario?.id, disp.usuario?.idUsuario,
+                                // soportar formas anidadas
+                                disp.usuarioConductor?.cedula, disp.usuarioConductor?.id_usuario, disp.usuarioConductor?.id,
+                                disp.usuarioConductor?.usuario?.cedula, disp.usuarioConductor?.usuario?.id_usuario, disp.usuarioConductor?.usuario?.id
+                            ];
+                            for (const c of candidates) {
+                                if (c !== undefined && c !== null && c !== '') {
+                                    id_usuario = String(c);
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            id_usuario = '';
+                        }
+
+                        // nombre del conductor si está disponible
+                        const nombre_conductor = disp.usuario?.nombre ?? disp.usuarioConductor?.usuario?.nombre ?? disp.usuarioConductor?.nombre ?? '';
+
+                        // vehiculo puede venir anidado o como id_vehiculo/placa - devolver placa o id si existe
+                        let id_vehiculo = '';
+                        try {
+                            const vehCandidates = [
+                                disp.id_vehiculo, disp.idVehiculo, disp.ID_VEHICULO,
+                                disp.vehiculo?.placa, disp.vehiculo
+                            ];
+                            for (const v of vehCandidates) {
+                                if (v !== undefined && v !== null && v !== '') {
+                                    id_vehiculo = String(v);
+                                    break;
+                                }
+                            }
+                        } catch (e) {
+                            id_vehiculo = '';
+                        }
+
+                        const idUsuarioDisplay = (id_usuario ? String(id_usuario) : '') + (nombre_conductor ? (' / ' + nombre_conductor) : '');
+
+                        return [id_disp ?? '', dia ?? '', inicio ?? '', fin ?? '', idUsuarioDisplay ?? '', id_vehiculo ?? ''];
+                    });
+
+                    tablaDiv.innerHTML = `
+                        <h4>📅 Disponibilidades (vista SQL) — registros: ${disponibilidades.length}</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No hay disponibilidades registradas.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-disponibilidades');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar disponibilidades</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Event listener para cambio de conductor
+        document.getElementById('conductor_cedula').addEventListener('change', function() {
+            const conductorId = this.value;
+            cargarVehiculosConductor(conductorId);
+        });
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar selects
+            cargarConductores();
+            cargarTiposServicio();
+            cargarNivelesTransporte();
+            
+            // Cargar tabla inicial
+            cargarDisponibilidades();
+        });
+    </script>
+</body>
+</html>

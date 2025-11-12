@@ -1,0 +1,624 @@
+{
+	"info": {
+		"_postman_id": "f8accc9f-2850-4fad-a4d1-2120ad5ce144",
+		"name": "AlpesCab - Semillas (RF1,RF2,RF3,RF4,RF7,RF10,RF11)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48436650"
+	},
+	"item": [
+		{
+			"name": "RF1 - Ciudad",
+			"item": [
+				{
+					"name": "Insertar ciudad",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ciudades/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ciudades",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar ciudades",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/ciudades/darCiudades",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ciudades",
+								"darCiudades"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RF2 - Usuario Servicio",
+			"item": [
+				{
+					"name": "Insertar usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dar usuarios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/darUsuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"darUsuarios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar rol usuario_servicio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/usuariosServicio/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuariosServicio",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RF3 - Usuario Conductor",
+			"item": [
+				{
+					"name": "Insertar conductor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/usuarios/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuarios",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Asignar rol conductor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/usuariosConductor/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"usuariosConductor",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RF4 - Vehículo",
+			"item": [
+				{
+					"name": "Insertar vehículo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/vehiculos/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"vehiculos",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar vehículos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/vehiculos/darVehiculos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"vehiculos",
+								"darVehiculos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Catálogos (pre-requisitos)",
+			"item": [
+				{
+					"name": "Insertar tipo_vehiculo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tiposVehiculo/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiposVehiculo",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar nivel_transporte",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/nivelesTransporte/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"nivelesTransporte",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar tipo_servicio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tiposServicio/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tiposServicio",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar tarifa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tarifas/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"tarifas",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RF7 - Punto geográfico",
+			"item": [
+				{
+					"name": "Insertar punto origen",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/puntosGeograficos/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"puntosGeograficos",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar punto destino",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/puntosGeograficos/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"puntosGeograficos",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar puntos",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/puntosGeograficos/darPuntos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"puntosGeograficos",
+								"darPuntos"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "RF10/RF11 - Revisiones",
+			"item": [
+				{
+					"name": "Insertar revisión conductor→cliente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/revisiones/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"revisiones",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Insertar revisión cliente→conductor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/revisiones/insertar",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"revisiones",
+								"insertar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar revisiones",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/revisiones/darRevisiones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"revisiones",
+								"darRevisiones"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		}
+	]
+}

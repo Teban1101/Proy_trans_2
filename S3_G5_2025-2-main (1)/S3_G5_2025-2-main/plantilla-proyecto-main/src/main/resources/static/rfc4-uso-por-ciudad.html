@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC4 - Uso por Ciudad - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    <div class="container">
+        <div class="header">
+            <h1>📈 RFC4 - Uso de Servicios por Ciudad y Rango de Fechas</h1>
+            <p>Mostrar la utilización de servicios de AlpesCab en una ciudad durante un rango de fechas indicado (porcentaje y ordenado).</p>
+        </div>
+
+        <div class="content">
+            <div id="connection-status"></div>
+
+            <div class="form-section">
+                <h2>📅 Parámetros</h2>
+                <form id="form-rfc4">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad (nombre)</label>
+                            <input type="text" id="ciudad" name="ciudad" placeholder="Ej: Bogota" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_desde">Fecha Desde</label>
+                            <input type="date" id="fecha_desde" name="fecha_desde" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_hasta">Fecha Hasta</label>
+                            <input type="date" id="fecha_hasta" name="fecha_hasta" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="btn btn-primary" type="submit">Ejecutar RFC4</button>
+                        <button class="btn btn-secondary" type="button" onclick="resetForm('form-rfc4')">Limpiar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="tabla-resultados">
+                    <p class="alert alert-info">Complete los parámetros y presione Ejecutar.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.getElementById('form-rfc4').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const ciudad = document.getElementById('ciudad').value.trim();
+            const desde = document.getElementById('fecha_desde').value;
+            const hasta = document.getElementById('fecha_hasta').value;
+            if (!ciudad || !desde || !hasta) {
+                showResult('Por favor complete todos los parámetros.', true);
+                return;
+            }
+
+            // Convertir fechas a ISO OffsetDateTime compatible (agregar hora)
+            const fechaIni = new Date(desde + 'T00:00:00Z').toISOString();
+            // P_FIN es exclusivo en la consulta, así que se añade 1 día
+            const fechaFinDate = new Date(hasta + 'T00:00:00Z');
+            fechaFinDate.setDate(fechaFinDate.getDate() + 1);
+            const fechaFin = fechaFinDate.toISOString();
+
+            try {
+                showResult('Ejecutando RFC4...', false);
+                const params = `ciudad=${encodeURIComponent(ciudad)}&fechaInicio=${encodeURIComponent(fechaIni)}&fechaFin=${encodeURIComponent(fechaFin)}`;
+                const datos = await get(`/servicios/rfc4?${params}`);
+                const div = document.getElementById('tabla-resultados');
+                if (Array.isArray(datos) && datos.length > 0) {
+                    const headers = ['Tipo Servicio', 'Nivel Transporte', 'Total Servicios', 'Porcentaje del Total'];
+                    const tableData = datos.map(row => [row[0], row[1] || 'SIN NIVEL', row[2], row[3] + '%']);
+                    div.innerHTML = `<h4>Uso por Ciudad: ${ciudad} (${desde} → ${hasta})</h4>${createTable(tableData, headers)}`;
+                    showResult(`✅ Se encontraron ${datos.length} filas.`, false);
+                } else {
+                    div.innerHTML = '<p class="alert alert-info">No se encontraron servicios para la ciudad y rango especificados.</p>';
+                    showResult('No se encontraron resultados para RFC4.', true);
+                }
+            } catch (error) {
+                console.error('Error RFC4:', error);
+                showResult(`Error al ejecutar RFC4: ${error.message}`, true);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', showConnectionStatus);
+    </script>
+</body>
+</html>

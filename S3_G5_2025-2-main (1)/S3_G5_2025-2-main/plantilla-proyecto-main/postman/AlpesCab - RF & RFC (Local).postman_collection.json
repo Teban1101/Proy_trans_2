@@ -1,0 +1,572 @@
+{
+	"info": {
+		"_postman_id": "912b7a22-03c9-4c97-beed-f764b2237b82",
+		"name": "AlpesCab - RF & RFC (Local)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48436650"
+	},
+	"item": [
+		{
+			"name": "Disponibilidades (RF5/RF6)",
+			"item": [
+				{
+					"name": "RF5 - Insertar disponibilidad (sin superposición)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function(){ pm.response.to.have.status(200); });",
+									"pm.test('No superposición', function(){ pm.expect(pm.response.text()).to.not.include('superpone'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/disponibilidades/insertar?id_disponibilidad={{id_disp}}&dia_semana={{dia_semana}}&hora_inicio={{hora_inicio}}&hora_fin={{hora_fin}}&id_usuario={{id_conductor}}&id_vehiculo={{placa}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disponibilidades",
+								"insertar"
+							],
+							"query": [
+								{
+									"key": "id_disponibilidad",
+									"value": "{{id_disp}}"
+								},
+								{
+									"key": "dia_semana",
+									"value": "{{dia_semana}}"
+								},
+								{
+									"key": "hora_inicio",
+									"value": "{{hora_inicio}}"
+								},
+								{
+									"key": "hora_fin",
+									"value": "{{hora_fin}}"
+								},
+								{
+									"key": "id_usuario",
+									"value": "{{id_conductor}}"
+								},
+								{
+									"key": "id_vehiculo",
+									"value": "{{placa}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RF6 - Actualizar disponibilidad (sin superposición)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status is 200', function(){ pm.response.to.have.status(200); });",
+									"pm.test('No superposición', function(){ pm.expect(pm.response.text()).to.not.include('superpone'); });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/disponibilidades/actualizar?id_disponibilidad={{id_disp}}&dia_semana={{dia_semana}}&hora_inicio={{hora_inicio_upd}}&hora_fin={{hora_fin_upd}}&id_usuario={{id_conductor}}&id_vehiculo={{placa}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disponibilidades",
+								"actualizar"
+							],
+							"query": [
+								{
+									"key": "id_disponibilidad",
+									"value": "{{id_disp}}"
+								},
+								{
+									"key": "dia_semana",
+									"value": "{{dia_semana}}"
+								},
+								{
+									"key": "hora_inicio",
+									"value": "{{hora_inicio_upd}}"
+								},
+								{
+									"key": "hora_fin",
+									"value": "{{hora_fin_upd}}"
+								},
+								{
+									"key": "id_usuario",
+									"value": "{{id_conductor}}"
+								},
+								{
+									"key": "id_vehiculo",
+									"value": "{{placa}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Listar disponibilidades",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/disponibilidades/darDisponibilidades",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disponibilidades",
+								"darDisponibilidades"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Dar disponibilidad por id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/disponibilidades/darDisponibilidad/{{id_disp}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disponibilidades",
+								"darDisponibilidad",
+								"{{id_disp}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE - Eliminar disponibilidad",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/disponibilidades/eliminar/{{id_disp}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"disponibilidades",
+								"eliminar",
+								"{{id_disp}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Servicios (RF8/RF9 + RFCs)",
+			"item": [
+				{
+					"name": "RF8 - Solicitar servicio (auto)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));",
+									"pm.test('Incluye ID servicio',()=>pm.expect(pm.response.text()).to.include(pm.variables.get('id_servicio')));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/solicitarAuto?id_servicio={{id_servicio}}&distancia_km={{distancia_km}}&id_tipo_servicio={{id_tipo_servicio}}&id_usuario_servicio={{id_usuario_servicio}}&id_punto_origen={{id_punto_origen}}&id_punto_destino={{id_punto_destino}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"solicitarAuto"
+							],
+							"query": [
+								{
+									"key": "id_servicio",
+									"value": "{{id_servicio}}"
+								},
+								{
+									"key": "distancia_km",
+									"value": "{{distancia_km}}"
+								},
+								{
+									"key": "id_tipo_servicio",
+									"value": "{{id_tipo_servicio}}"
+								},
+								{
+									"key": "id_usuario_servicio",
+									"value": "{{id_usuario_servicio}}"
+								},
+								{
+									"key": "id_punto_origen",
+									"value": "{{id_punto_origen}}"
+								},
+								{
+									"key": "id_punto_destino",
+									"value": "{{id_punto_destino}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RF9 - Terminar servicio",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/terminar/{{id_servicio}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"terminar",
+								"{{id_servicio}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Listar servicios",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/darServicios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"darServicios"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Dar servicio por id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/darServicio/{{id_servicio}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"darServicio",
+								"{{id_servicio}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RFC1 - Histórico por usuario",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/rfc1?usuario={{id_usuario_servicio}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"rfc1"
+							],
+							"query": [
+								{
+									"key": "usuario",
+									"value": "{{id_usuario_servicio}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RFC2 - Top 20 conductores",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/rfc2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"rfc2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RFC3 - Detalle por servicio (comisión %)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/rfc3?comisionPct={{comision_pct}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"rfc3"
+							],
+							"query": [
+								{
+									"key": "comisionPct",
+									"value": "{{comision_pct}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RFC3 - Agregado por vehículo (comisión %)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/rfc3/agregado?comisionPct={{comision_pct}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"rfc3",
+								"agregado"
+							],
+							"query": [
+								{
+									"key": "comisionPct",
+									"value": "{{comision_pct}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RFC4 - Uso por ciudad y rango",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('200 OK',()=>pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/servicios/rfc4?ciudad={{ciudad}}&ini={{fecha_ini}}&fin={{fecha_fin}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"servicios",
+								"rfc4"
+							],
+							"query": [
+								{
+									"key": "ciudad",
+									"value": "{{ciudad}}"
+								},
+								{
+									"key": "ini",
+									"value": "{{fecha_ini}}"
+								},
+								{
+									"key": "fin",
+									"value": "{{fecha_fin}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		}
+	]
+}

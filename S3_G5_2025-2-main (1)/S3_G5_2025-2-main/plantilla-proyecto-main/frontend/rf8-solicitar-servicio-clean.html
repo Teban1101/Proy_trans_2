@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF8 - Solicitar Servicio - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚕 RF8 - Solicitar Servicio</h1>
+            <p>Solicitar servicios de transporte con asignación automática de conductores</p>
+        </div>
+        
+        <div class="content">
+            <!-- Información del Proceso -->
+            <div class="alert alert-info">
+                <h4>🔍 Proceso de Solicitud de Servicio (RF8)</h4>
+                <ol>
+                    <li><strong>Verificar medio de pago:</strong> El usuario debe tener una tarjeta de crédito registrada</li>
+                    <li><strong>Buscar conductor disponible:</strong> Se busca un conductor cerca que tenga disponibilidad</li>
+                    <li><strong>Asignar conductor automáticamente:</strong> Se asigna el primer conductor disponible</li>
+                    <li><strong>Calcular tarifa:</strong> Se calcula el costo basado en distancia y nivel de transporte</li>
+                    <li><strong>Registrar inicio del viaje:</strong> Se guarda la hora de inicio y datos del servicio</li>
+                </ol>
+            </div>
+            
+            <!-- Sección: Solicitar Servicio -->
+            <div class="form-section">
+                <h2>📝 Solicitar Nuevo Servicio</h2>
+                <form id="solicitarServicioForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_servicio">ID Servicio *</label>
+                            <input type="number" id="id_servicio" name="id_servicio" required placeholder="Ej: 1001" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_usuario_servicio">Cédula Usuario Solicitante *</label>
+                            <input type="number" id="id_usuario_servicio" name="id_usuario_servicio" required placeholder="Cédula del usuario" min="1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="distancia_km">Distancia (km) *</label>
+                            <input type="number" id="distancia_km" name="distancia_km" required step="0.1" min="0.1" placeholder="Ej: 5.5">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_tipo_servicio">Tipo de Servicio *</label>
+                            <select id="id_tipo_servicio" name="id_tipo_servicio" required>
+                                <option value="">Seleccione tipo de servicio...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_punto_origen">ID Punto de Origen *</label>
+                            <input type="number" id="id_punto_origen" name="id_punto_origen" required placeholder="ID origen" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="id_punto_destino">ID Punto de Destino *</label>
+                            <input type="number" id="id_punto_destino" name="id_punto_destino" required placeholder="ID destino" min="1">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">🚗 Solicitar Servicio</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('solicitarServicioForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Verificaciones Previas -->
+            <div class="form-section">
+                <h2>🔍 Verificaciones Previas</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cedula_verificar">Cédula del Usuario</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="number" id="cedula_verificar" placeholder="Cédula" min="1" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" onclick="verificarMedioPago()">Verificar Medio de Pago</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr style="margin: 20px 0;">
+                
+                <h3>🚗 Buscar Conductores Disponibles</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dia_buscar_cond">Día de la Semana *</label>
+                        <select id="dia_buscar_cond" required>
+                            <option value="">-- Selecciona un día --</option>
+                            <option value="1">Lunes (1)</option>
+                            <option value="2">Martes (2)</option>
+                            <option value="3">Miércoles (3)</option>
+                            <option value="4">Jueves (4)</option>
+                            <option value="5">Viernes (5)</option>
+                            <option value="6">Sábado (6)</option>
+                            <option value="7">Domingo (7)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="hora_inicio_buscar">Hora Inicio *</label>
+                        <input type="time" id="hora_inicio_buscar" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hora_fin_buscar">Hora Fin *</label>
+                        <input type="time" id="hora_fin_buscar" required>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" onclick="verificarConductoresDisponibles()">Ver Conductores</button>
+            </div>
+            
+            <!-- Sección: Servicios Activos -->
+            <div class="form-section">
+                <h2>📋 Gestión de Servicios</h2>
+                <button type="button" class="btn btn-secondary" onclick="listarServiciosActivos()">Listar Servicios Activos</button>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        window.serviciosFinalizados = [];
+        let conductorAsignado = null;
+        
+        // Cargar tipos de servicio
+        window.addEventListener('load', async function() {
+            try {
+                const today = new Date();
+                const dayOfWeek = today.getDay();
+                const dia = dayOfWeek === 0 ? 7 : dayOfWeek;
+                
+                document.getElementById('dia_buscar_cond').value = dia;
+                document.getElementById('hora_inicio_buscar').value = '08:00';
+                document.getElementById('hora_fin_buscar').value = '17:00';
+                
+                // Cargar tipos de servicio
+                const tiposServicio = await get('/tiposServicio/darTiposServicio');
+                const selectTipo = document.getElementById('id_tipo_servicio');
+                tiposServicio.forEach(tipo => {
+                    const option = document.createElement('option');
+                    option.value = tipo.id_tipo_servicio;
+                    option.textContent = `${tipo.nombre} (${tipo.id_tipo_servicio})`;
+                    selectTipo.appendChild(option);
+                });
+                
+                await verificarConductoresDisponibles();
+            } catch (error) {
+                console.error('Error en carga inicial:', error);
+            }
+        });
+        
+        // Solicitar servicio
+        document.getElementById('solicitarServicioForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('solicitarServicioForm')) {
+                showResult('Por favor complete todos los campos.', true);
+                return;
+            }
+            
+            if (!conductorAsignado) {
+                showResult('Por favor espera a que cargue la búsqueda de conductores.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            params.set('id_conductor', conductorAsignado);
+            
+            try {
+                showResult('🔄 Procesando...', false);
+                const result = await post(`/servicios/solicitarAuto?${params}`);
+                showResult(result);
+                resetForm('solicitarServicioForm');
+                conductorAsignado = null;
+                setTimeout(listarServiciosActivos, 1000);
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        });
+        
+        // Verificar medio de pago
+        async function verificarMedioPago() {
+            const cedula = document.getElementById('cedula_verificar').value;
+            if (!cedula) {
+                showResult('Ingrese una cédula.', true);
+                return;
+            }
+            
+            try {
+                const usuario = await get(`/usuarios/darUsuario/${cedula}`);
+                if (!usuario) {
+                    showResult(`Usuario ${cedula} no encontrado.`, true);
+                    return;
+                }
+                
+                const tarjetas = await get('/tarjetasCredito/darTarjetas');
+                const tarjetasUsuario = tarjetas.filter(t => t.usuario?.cedula == cedula);
+                
+                if (tarjetasUsuario.length === 0) {
+                    showResult(`Usuario no tiene tarjetas de crédito.`, true);
+                    return;
+                }
+                
+                showResult(`✅ ${usuario.nombre} - ${tarjetasUsuario.length} tarjeta(s) registrada(s)`, false);
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+        
+        // Verificar conductores disponibles
+        async function verificarConductoresDisponibles() {
+            const dia = document.getElementById('dia_buscar_cond').value;
+            const hora_inicio_str = document.getElementById('hora_inicio_buscar').value;
+            const hora_fin_str = document.getElementById('hora_fin_buscar').value;
+            
+            if (!dia || !hora_inicio_str || !hora_fin_str) {
+                showResult('Complete los campos de búsqueda.', true);
+                return;
+            }
+            
+            try {
+                const disponibilidades = await get('/disponibilidades/darDisponibilidades');
+                
+                const [hi, mi] = hora_inicio_str.split(':');
+                const [hf, mf] = hora_fin_str.split(':');
+                const search_start = parseInt(hi) * 60 + parseInt(mi);
+                const search_end = parseInt(hf) * 60 + parseInt(mf);
+                
+                const disponibles = disponibilidades.filter(disp => {
+                    if (parseInt(disp.dia_semana) !== parseInt(dia)) return false;
+                    
+                    const disp_start_date = new Date(disp.hora_inicio);
+                    const disp_end_date = new Date(disp.hora_fin);
+                    
+                    const disp_start = disp_start_date.getHours() * 60 + disp_start_date.getMinutes();
+                    const disp_end = disp_end_date.getHours() * 60 + disp_end_date.getMinutes();
+                    
+                    return disp_start <= search_start && search_end <= disp_end;
+                });
+                
+                const resultsDiv = document.getElementById('results');
+                const dayNames = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+                
+                if (disponibles.length > 0) {
+                    conductorAsignado = disponibles[0].usuario?.cedula;
+                    resultsDiv.innerHTML = `
+                        <p style="background: #d4edda; padding: 10px; color: #155724;">
+                            ✅ <strong>Conductor Asignado:</strong> ${disponibles[0].usuario?.cedula} - ${disponibles[0].usuario?.nombre}
+                        </p>
+                    `;
+                } else {
+                    conductorAsignado = null;
+                    resultsDiv.innerHTML = `<p style="background: #f8d7da; padding: 10px; color: #721c24;">⚠️ No hay conductores disponibles</p>`;
+                }
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+        
+        // Listar servicios activos
+        async function listarServiciosActivos() {
+            try {
+                const response = await fetch('/servicios/darServicios');
+                const servicios = await response.json();
+                
+                const resultsDiv = document.getElementById('results');
+                
+                if (!servicios || servicios.length === 0) {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">No hay servicios.</p>';
+                    return;
+                }
+                
+                const serviciosActivos = servicios.filter(s => !window.serviciosFinalizados.includes(s.id_servicio));
+                
+                if (serviciosActivos.length === 0) {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">No hay servicios para mostrar.</p>';
+                    return;
+                }
+                
+                let html = `<h4>🚗 Servicios (${serviciosActivos.length})</h4>
+                            <table border="1" style="width:100%; border-collapse:collapse; margin-top:10px;">
+                                <tr style="background-color:#007bff; color:white;">
+                                    <th style="padding:10px;">ID</th>
+                                    <th style="padding:10px;">Acción</th>
+                                </tr>`;
+                
+                serviciosActivos.forEach(s => {
+                    html += `<tr style="border-bottom:1px solid #ddd;">
+                                <td style="padding:10px;">${s.id_servicio}</td>
+                                <td style="padding:10px;">
+                                    <button class="btn btn-sm btn-danger" onclick="finalizarServicio(${s.id_servicio})">Finalizar</button>
+                                </td>
+                            </tr>`;
+                });
+                
+                html += '</table>';
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p class="alert alert-danger">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Finalizar servicio
+        async function finalizarServicio(id_servicio) {
+            if (!confirm(`¿Finalizar servicio ${id_servicio}?`)) return;
+            
+            try {
+                const response = await fetch(`/servicios/terminar/${id_servicio}`, { method: 'PUT' });
+                
+                if (response.ok) {
+                    window.serviciosFinalizados.push(id_servicio);
+                    showResult(`✓ Servicio ${id_servicio} finalizado`, false);
+                    setTimeout(listarServiciosActivos, 500);
+                } else {
+                    showResult('Error al finalizar.', true);
+                }
+            } catch (error) {
+                showResult(`Error: ${error.message}`, true);
+            }
+        }
+    </script>
+</body>
+</html>

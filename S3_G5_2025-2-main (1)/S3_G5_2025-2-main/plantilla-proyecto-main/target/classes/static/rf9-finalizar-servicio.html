@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RF9 - Finalizar Servicio</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            padding: 30px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        h1 { 
+            color: #333; 
+            margin-bottom: 25px;
+            font-size: 28px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            margin-top: 20px;
+        }
+        th { 
+            background: #667eea;
+            color: white; 
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td { 
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 8px;
+            color: #333;
+        }
+        tr:hover { background: #f5f5f5; }
+        tr.finalizado { background: #e8f5e9; }
+        tr.finalizado td { color: #4caf50; }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px;
+            cursor: pointer; 
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        button:hover { 
+            background: #45a049; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background: #9ccc65;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>Finalizar Servicios</h1>
+            <a href="index.html" style="background: #667eea; color: white; padding: 10px 20px; border-radius: 4px; text-decoration: none; font-weight: 600;">Volver al Menu</a>
+        </div>
+        <table id="tablaServicios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Distancia (km)</th>
+                    <th>Costo Total</th>
+                    <th>Hora Inicio</th>
+                    <th>Hora Fin</th>
+                    <th>Usuario</th>
+                    <th>Conductor</th>
+                    <th>Vehiculo</th>
+                    <th>Accion</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+    <script>
+    function formatearFecha(fecha) {
+        if (!fecha) return 'No finalizó';
+        const d = new Date(fecha);
+        return d.toLocaleString('es-CO', { 
+            year: 'numeric', 
+            month: '2-digit', 
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    }
+
+    async function cargarServicios() {
+        const resp = await fetch('/servicios/listar');
+        const servicios = await resp.json();
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '';
+        servicios.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.dataset.id = s.id_servicio;
+            tr.dataset.finalizado = 'false';
+            
+            tr.innerHTML = `
+                <td>${s.id_servicio}</td>
+                <td>${s.distancia_km}</td>
+                <td>${s.costo_total}</td>
+                <td>${formatearFecha(s.hora_inicio)}</td>
+                <td id="hora_fin_${s.id_servicio}">Sin finalizar</td>
+                <td>${s.id_usuario_servicio}</td>
+                <td>${s.id_conductor}</td>
+                <td>${s.id_vehiculo}</td>
+                <td>
+                    <button onclick="finalizarServicio(${s.id_servicio}, this)">
+                        Finalizar
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function finalizarServicio(id, btn) {
+        const resp = await fetch(`/servicios/finalizar/${id}`, { method: 'PUT' });
+        if (resp.ok) {
+            // Actualizar la hora fin en la tabla
+            const horaFinCell = document.getElementById(`hora_fin_${id}`);
+            const ahora = new Date().toLocaleString('es-CO', { 
+                year: 'numeric', 
+                month: '2-digit', 
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            horaFinCell.textContent = ahora;
+            
+            // Cambiar boton a finalizado
+            btn.textContent = 'Finalizado';
+            btn.disabled = true;
+            
+            // Marcar fila como finalizada
+            btn.closest('tr').classList.add('finalizado');
+            btn.closest('tr').dataset.finalizado = 'true';
+        } else {
+            alert('Error al finalizar servicio');
+        }
+    }
+
+    cargarServicios();
+    </script>
+</body>
+</html>

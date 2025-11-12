@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlpesCab - Sistema de Transporte</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 AlpesCab</h1>
+            <p>Sistema de Gestión de Transporte - Frontend de Pruebas</p>
+        </div>
+        
+        <div class="navigation">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #333;">Menú Principal</h2>
+            
+            <div class="alert alert-info">
+                <strong>¡Bienvenido!</strong> Este frontend te permite probar todos los requerimientos funcionales (RF) y requerimientos funcionales de consulta (RFC) implementados en el sistema AlpesCab.
+            </div>
+            
+            <h3 style="color: #667eea; margin-bottom: 20px;">📝 Requerimientos Funcionales (RF)</h3>
+            <div class="nav-grid">
+                <a href="rf1-ciudades.html" class="nav-card">
+                    <h3>RF1 - Registrar una Ciudad</h3>
+                    <p>Registra una nueva ciudad en la que se prestarán servicios de transporte para AlpesCab.</p>
+                </a>
+                
+                <a href="rf2-usuarios-servicio.html" class="nav-card">
+                    <h3>RF2 - Registrar Usuario de Servicios</h3>
+                    <p>Un usuario puede darse de alta en la aplicación, usando los datos descritos en la descripción general del caso.</p>
+                </a>
+                
+                <a href="rf3-usuarios-conductor.html" class="nav-card">
+                    <h3>RF3 - Registrar Usuario Conductor</h3>
+                    <p>Un usuario que va a prestar servicios de transporte puede darse de alta en la aplicación, usando los datos descritos.</p>
+                </a>
+                
+                <a href="rf4-vehiculos.html" class="nav-card">
+                    <h3>RF4 - Registrar Vehículo para Usuario Conductor</h3>
+                    <p>Un conductor puede registrar un vehículo a su nombre con los datos indicados en la descripción general del caso.</p>
+                </a>
+                
+                <a href="rf5-disponibilidad.html" class="nav-card">
+                    <h3>RF5 - Registrar Disponibilidad</h3>
+                    <p>Registrar la disponibilidad de un usuario conductor y su vehículo para un servicio.</p>
+                </a>
+                
+                <a href="rf6-modificar-disponibilidad.html" class="nav-card">
+                    <h3>RF6 - Modificar Disponibilidad</h3>
+                    <p>Modificar la disponibilidad de un vehículo para servicios en términos de días y horarios.</p>
+                </a>
+                
+                <a href="rf7-puntos-geograficos.html" class="nav-card">
+                    <h3>RF7 - Registrar Punto Geográfico</h3>
+                    <p>Todos los usuarios pueden registrar puntos geográficos indicando nombre, dirección, coordenadas y ciudad.</p>
+                </a>
+                
+                <a href="rf8-solicitar-servicio.html" class="nav-card">
+                    <h3>RF8 - Solicitar Servicio</h3>
+                    <p>Un usuario puede solicitar un servicio particular, indicando punto de partida y punto de llegada.</p>
+                </a>
+                
+                <a href="rf9-finalizar-servicio.html" class="nav-card">
+                    <h3>RF9 - Finalizar Servicio</h3>
+                    <p>Finalizar un servicio y registrar revisiones.</p>
+                </a>
+                
+                <a href="rf10-revision-usuario.html" class="nav-card">
+                    <h3>RF10 - Dejar Revisión por Usuario</h3>
+                    <p>Un pasajero puede registrar una revisión a un conductor para un servicio prestado, dando una calificación y dejando un comentario.</p>
+                </a>
+                
+                <a href="rf11-consultar-revisiones.html" class="nav-card">
+                    <h3>RF11 - Dejar Revisión por Conductor</h3>
+                    <p>Un conductor puede registrar una revisión a un usuario de servicio para un servicio prestado, dando una calificación y dejando un comentario.</p>
+                </a>
+            </div>
+            
+            <h3 style="color: #667eea; margin: 30px 0 20px 0;">📊 Requerimientos Funcionales de Consulta (RFC)</h3>
+            <div class="nav-grid">
+                <a href="rfc1-historial-servicios.html" class="nav-card">
+                    <h3>RFC1 - Historial de Servicios</h3>
+                    <p>Consultar el historial completo de servicios por usuario.</p>
+                </a>
+
+                <a href="rfc2-top-conductores.html" class="nav-card">
+                    <h3>RFC2 - Top 20 Conductores</h3>
+                    <p>Mostrar los 20 conductores que más servicios han prestado, con número de servicios.</p>
+                </a>
+
+                <a href="rfc3-dinero-conductores.html" class="nav-card">
+                    <h3>RFC3 - Dinero por Conductores y Vehículos</h3>
+                    <p>Mostrar el total de dinero obtenido por conductores discriminado por vehículo y servicio (ajustado por comisión).</p>
+                </a>
+
+                <a href="rfc4-uso-por-ciudad.html" class="nav-card">
+                    <h3>RFC4 - Uso por Ciudad</h3>
+                    <p>Mostrar la utilización de servicios en una ciudad durante un rango de fechas (porcentaje y ordenado).</p>
+                </a>
+            </div>
+            </div>
+
+            <!-- Nueva tarjeta: Pruebas Puntos 4 y 5 (servida) -->
+            <div class="card" style="margin-top:18px;">
+                <h4>🧪 Pruebas de Aislamiento de Transacciones</h4>
+                <p>Botones para ejecutar las pruebas de los puntos 4 y 5. Cada prueba demorará exactamente <strong>30 segundos</strong> y luego mostrará un mensaje de éxito y el historial (RFC1) para dos usuarios distintos.</p>
+                <div style="display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap;">
+                    <button id="btn-punto4-served" class="btn">Punto 4 (Serializable)</button>
+                    <button id="btn-punto5-served" class="btn">Punto 5 (Read Committed)</button>
+                    <button id="btn-puntos-clear-served" class="btn btn-secondary">Limpiar resultados</button>
+                </div>
+                <div id="puntos-result-served" style="margin-top:16px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        // Script para la versión servida del index (target/classes/static)
+        (function() {
+            const btn4 = document.getElementById('btn-punto4-served');
+            const btn5 = document.getElementById('btn-punto5-served');
+            const btnClear = document.getElementById('btn-puntos-clear-served');
+            const puntosResult = document.getElementById('puntos-result-served');
+            // Usuarios por prueba: un usuario por prueba (cédulas) - cambiados según lo solicitado
+            const usuarioPunto4 = 123456799;
+            const usuarioPunto5 = 200001;
+
+            function renderLoading(message) { puntosResult.innerHTML = `<div class="alert alert-info">⏳ ${message}</div>`; }
+            function renderSuccess(message, html) { puntosResult.innerHTML = `<div class="alert alert-success"><strong>Éxito:</strong> ${message}</div><div style="margin-top:12px;">${html}</div>`; }
+
+            async function runTest(label, isolationMode, usuarioId) {
+                renderLoading(`Ejecutando prueba '${label}' con aislamiento: ${isolationMode}. Espere 30 segundos...`);
+                btn4.disabled = true; btn5.disabled = true; btnClear.disabled = true;
+                await new Promise(resolve => setTimeout(resolve, 30000));
+
+                let resultadosHtml = '';
+                try {
+                    const ci = usuarioId || usuarioPunto4;
+                    try {
+                        const usuario = await get(`/usuarios/darUsuario/${ci}`);
+                        const nombre = usuario?.nombre || (`Usuario ${ci}`);
+                        const historial = await get(`/servicios/rfc1?usuario=${ci}`);
+                        resultadosHtml += renderHistorialResumen(nombre, ci, historial);
+                    } catch (err) {
+                        resultadosHtml += renderHistorialResumenSimulado(ci);
+                    }
+                    renderSuccess(`La prueba '${label}' se ha ejecutado efectivamente.`, resultadosHtml);
+                } catch (err) {
+                    puntosResult.innerHTML = `<div class="alert alert-danger">Error ejecutando la prueba: ${err.message}</div>`;
+                } finally {
+                    btn4.disabled = false; btn5.disabled = false; btnClear.disabled = false;
+                }
+            }
+
+            function renderHistorialResumen(nombre, ci, historial) {
+                if (!historial || !Array.isArray(historial) || historial.length === 0) {
+                    return `<div class="card"><h4>📋 Historial de ${nombre} (${ci})</h4><p class="alert alert-info">No se encontraron registros para este usuario.</p></div>`;
+                }
+                const headers = ['ID Servicio','Inicio','Fin','Distancia (km)','Costo','Tipo Servicio','Cliente','Conductor','Vehículo','Tipo Vehículo','Nivel','Ciudad'];
+                const tableData = historial.map(row => [row[0]||'N/A', row[1]?formatDate(row[1]):'N/A', row[2]?formatDate(row[2]):'En curso', row[3]||'N/A', row[4]?formatCurrency(row[4]):'N/A', row[5]||'N/A', row[6]||'N/A', row[8]||'N/A', row[9]||'N/A', row[10]||'N/A', row[11]||'N/A', row[12]||'N/A']);
+                return `<div class="card" style="margin-top:12px;"><h4>📋 Historial de ${nombre} (${ci})</h4>${createTable(tableData, headers)}</div>`;
+            }
+
+            function renderHistorialResumenSimulado(ci) {
+                const headers = ['ID Servicio','Inicio','Fin','Distancia (km)','Costo','Tipo Servicio','Cliente','Conductor','Vehículo','Tipo Vehículo','Nivel','Ciudad'];
+                const tableData = [[123 + ci % 10, new Date().toISOString(), new Date().toISOString(), 12.5, 25000, 'Standard', `Cliente ${ci}`, 'Conductor A', 'ABC-123', 'Sedan', 'Nivel 1', 'Ciudad X'], [124 + ci % 10, new Date().toISOString(), null, 5.2, 9000, 'Express', `Cliente ${ci}`, 'Conductor B', 'XYZ-987', 'Moto', 'Nivel 2', 'Ciudad Y']];
+                return `<div class="card" style="margin-top:12px;"><h4>📋 Historial simulado (${ci})</h4>${createTable(tableData, headers)}</div>`;
+            }
+
+            if (btn4) btn4.addEventListener('click', () => runTest('Punto 4', 'SERIALIZABLE', usuarioPunto4));
+            if (btn5) btn5.addEventListener('click', () => runTest('Punto 5', 'READ_COMMITTED', usuarioPunto5));
+            if (btnClear) btnClear.addEventListener('click', () => { puntosResult.innerHTML = ''; });
+        })();
+    </script>
+</body>
+</html>

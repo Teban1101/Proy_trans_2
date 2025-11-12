@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC3 - Usuarios Más Frecuentes - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🏆 RFC3 - Usuarios Más Frecuentes</h1>
+            <p>Consultar usuarios que más utilizan los servicios de transporte</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Top Usuarios Frecuentes -->
+            <div class="form-section">
+                <h2>🥇 Top Usuarios Más Frecuentes</h2>
+                <form id="topUsuariosForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="limite">Cantidad de Usuarios a Mostrar</label>
+                            <select id="limite" name="limite">
+                                <option value="5">Top 5</option>
+                                <option value="10" selected>Top 10</option>
+                                <option value="20">Top 20</option>
+                                <option value="50">Top 50</option>
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ordenar_por">Ordenar Por</label>
+                            <select id="ordenar_por" name="ordenar_por">
+                                <option value="total_servicios">Total de Servicios</option>
+                                <option value="gasto_total">Gasto Total</option>
+                                <option value="promedio_mensual">Promedio Mensual</option>
+                                <option value="servicios_finalizados">Servicios Finalizados</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Consultar Top Usuarios</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('topUsuariosForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Usuarios Frecuentes por Período -->
+            <div class="form-section">
+                <h2>📅 Usuarios Frecuentes por Período</h2>
+                <form id="usuariosPeriodoForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="fecha_inicio">Fecha Inicio *</label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha_fin">Fecha Fin *</label>
+                            <input type="date" id="fecha_fin" name="fecha_fin" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="min_servicios">Mínimo de Servicios</label>
+                            <input type="number" id="min_servicios" name="min_servicios" 
+                                   placeholder="Ej: 5" min="1" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="limite_periodo">Límite de Resultados</label>
+                            <input type="number" id="limite_periodo" name="limite" 
+                                   placeholder="Ej: 10" min="1" value="10">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-info">Consultar por Período</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('usuariosPeriodoForm')">Limpiar</button>
+                </form>
+            </div>
+
+            <!-- Sección: Análisis de Fidelidad -->
+            <div class="form-section">
+                <h2>💎 Análisis de Fidelidad de Usuarios</h2>
+                <div class="form-row">
+                    <button class="btn btn-success" onclick="analizarFidelidadUsuarios()">Generar Análisis de Fidelidad</button>
+                    <button class="btn btn-success" onclick="usuariosPorEstado()">Usuarios por Estado de Servicios</button>
+                    <button class="btn btn-success" onclick="tendenciasUso()">Tendencias de Uso</button>
+                </div>
+            </div>
+            
+            <!-- Sección: Estadísticas Generales -->
+            <div class="form-section">
+                <h2>📊 Estadísticas Generales</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="estadisticasGenerales()">Estadísticas del Sistema</button>
+                    <button class="btn btn-secondary" onclick="listarTodosUsuarios()">Todos los Usuarios</button>
+                    <button class="btn btn-secondary" onclick="resumenServicios()">Resumen de Servicios</button>
+                </div>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <h4>🏆 Usuarios Más Frecuentes</h4>
+                        <div id="tabla-usuarios-frecuentes">
+                            <p class="alert alert-info">Cargando datos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Consultar top usuarios más frecuentes
+        document.getElementById('topUsuariosForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const usuarios = await get(`/consultas/usuariosFrecuentes?${params}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Ranking', 'Cédula', 'Nombre', 'Total Servicios', 'Gasto Total', 'Promedio por Servicio', 'Último Servicio'];
+                    const tableData = usuarios.map((usuario, index) => [
+                        `🏆 ${index + 1}`,
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.totalServicios || 0,
+                        usuario.gastoTotal ? `$${usuario.gastoTotal.toLocaleString()}` : '$0',
+                        usuario.promedioServicio ? `$${usuario.promedioServicio.toLocaleString()}` : '$0',
+                        usuario.ultimoServicio ? new Date(usuario.ultimoServicio).toLocaleDateString() : 'N/A'
+                    ]);
+                    
+                    const limite = document.getElementById('limite').value || usuarios.length;
+                    const criterio = document.getElementById('ordenar_por').options[document.getElementById('ordenar_por').selectedIndex].text;
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>🏆 Top ${limite} Usuarios Más Frecuentes</h4>
+                        <p class="alert alert-success">Ordenado por: ${criterio}</p>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se encontraron usuarios frecuentes.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuarios frecuentes: ${error.message}`, true);
+            }
+        });
+        
+        // Consultar usuarios frecuentes por período
+        document.getElementById('usuariosPeriodoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('usuariosPeriodoForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const usuarios = await get(`/consultas/usuariosFrecuentesPorPeriodo?${params}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Ranking', 'Cédula', 'Nombre', 'Servicios en Período', 'Gasto en Período', 'Frecuencia'];
+                    const tableData = usuarios.map((usuario, index) => [
+                        `📅 ${index + 1}`,
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.serviciosPeriodo || 0,
+                        usuario.gastoPeriodo ? `$${usuario.gastoPeriodo.toLocaleString()}` : '$0',
+                        usuario.frecuencia || 'N/A'
+                    ]);
+                    
+                    const fechaInicio = document.getElementById('fecha_inicio').value;
+                    const fechaFin = document.getElementById('fecha_fin').value;
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📅 Usuarios Frecuentes del ${fechaInicio} al ${fechaFin}</h4>
+                        <p class="alert alert-info">Período analizado: ${usuarios.length} usuarios encontrados</p>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se encontraron usuarios frecuentes en el período especificado.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuarios por período: ${error.message}`, true);
+            }
+        });
+        
+        // Analizar fidelidad de usuarios
+        async function analizarFidelidadUsuarios() {
+            try {
+                const fidelidad = await get('/consultas/fidelidadUsuarios');
+                const resultsDiv = document.getElementById('results');
+                
+                if (fidelidad) {
+                    resultsDiv.innerHTML = `
+                        <h4>💎 Análisis de Fidelidad de Usuarios</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>👑 VIP (>50 servicios)</h5>
+                                <p style="font-size: 2em; margin: 0;">${fidelidad.usuariosVIP || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>🥈 Premium (20-50)</h5>
+                                <p style="font-size: 2em; margin: 0;">${fidelidad.usuariosPremium || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>🥉 Regular (5-19)</h5>
+                                <p style="font-size: 2em; margin: 0;">${fidelidad.usuariosRegular || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #708090 0%, #2F4F4F 100%); color: white; padding: 15px; border-radius: 8px; text-align: center;">
+                                <h5>⭐ Nuevo (<5)</h5>
+                                <p style="font-size: 2em; margin: 0;">${fidelidad.usuariosNuevo || 0}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se pudo generar el análisis de fidelidad.', true);
+                }
+            } catch (error) {
+                showResult(`Error al analizar fidelidad: ${error.message}`, true);
+            }
+        }
+        
+        // Usuarios por estado de servicios
+        async function usuariosPorEstado() {
+            try {
+                const estadisticas = await get('/consultas/usuariosPorEstadoServicios');
+                const resultsDiv = document.getElementById('results');
+                
+                if (estadisticas) {
+                    const headers = ['Estado', 'Usuarios Únicos', 'Total Servicios', 'Porcentaje'];
+                    const tableData = [
+                        ['FINALIZADO', estadisticas.finalizados?.usuarios || 0, estadisticas.finalizados?.servicios || 0, `${estadisticas.finalizados?.porcentaje || 0}%`],
+                        ['EN_CURSO', estadisticas.enCurso?.usuarios || 0, estadisticas.enCurso?.servicios || 0, `${estadisticas.enCurso?.porcentaje || 0}%`],
+                        ['SOLICITADO', estadisticas.solicitados?.usuarios || 0, estadisticas.solicitados?.servicios || 0, `${estadisticas.solicitados?.porcentaje || 0}%`],
+                        ['CANCELADO', estadisticas.cancelados?.usuarios || 0, estadisticas.cancelados?.servicios || 0, `${estadisticas.cancelados?.porcentaje || 0}%`]
+                    ];
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Usuarios por Estado de Servicios</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se pudieron obtener las estadísticas por estado.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuarios por estado: ${error.message}`, true);
+            }
+        }
+        
+        // Tendencias de uso
+        async function tendenciasUso() {
+            try {
+                const tendencias = await get('/consultas/tendenciasUso');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(tendencias) && tendencias.length > 0) {
+                    const headers = ['Período', 'Usuarios Activos', 'Servicios Totales', 'Promedio por Usuario', 'Tendencia'];
+                    const tableData = tendencias.map(periodo => [
+                        periodo.periodo,
+                        periodo.usuariosActivos || 0,
+                        periodo.serviciosTotales || 0,
+                        periodo.promedioUsuario ? periodo.promedioUsuario.toFixed(1) : '0.0',
+                        periodo.tendencia || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📈 Tendencias de Uso por Período</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se encontraron datos de tendencias.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar tendencias: ${error.message}`, true);
+            }
+        }
+        
+        // Estadísticas generales
+        async function estadisticasGenerales() {
+            try {
+                const stats = await get('/consultas/estadisticasGenerales');
+                const resultsDiv = document.getElementById('results');
+                
+                if (stats) {
+                    resultsDiv.innerHTML = `
+                        <h4>📊 Estadísticas Generales del Sistema</h4>
+                        <div class="stats-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>👥 Total Usuarios</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${stats.totalUsuarios || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>🚕 Total Servicios</h5>
+                                <p style="font-size: 2.5em; margin: 0;">${stats.totalServicios || 0}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>💰 Ingresos Totales</h5>
+                                <p style="font-size: 1.8em; margin: 0;">$${(stats.ingresosTotales || 0).toLocaleString()}</p>
+                            </div>
+                            <div class="stat-card" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%); color: white; padding: 20px; border-radius: 10px;">
+                                <h5>📅 Promedio Diario</h5>
+                                <p style="font-size: 1.8em; margin: 0;">${(stats.promedioDiario || 0).toFixed(1)}</p>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se pudieron obtener las estadísticas generales.', true);
+                }
+            } catch (error) {
+                showResult(`Error al consultar estadísticas: ${error.message}`, true);
+            }
+        }
+        
+        // Listar todos los usuarios
+        async function listarTodosUsuarios() {
+            try {
+                const usuarios = await get('/usuariosServicio/darUsuariosServicio');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = usuarios.map(us => [
+                        us.id_usuario,
+                        us.usuario?.nombre || 'N/A',
+                        us.usuario?.correo || 'N/A',
+                        us.usuario?.celular || 'N/A'
+                    ]);
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>👥 Todos los Usuarios (${usuarios.length})</h4>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios registrados.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al cargar usuarios: ${error.message}`, true);
+            }
+        }
+        
+        // Resumen de servicios
+        async function resumenServicios() {
+            try {
+                const resumen = await get('/servicios/resumenServicios');
+                const resultsDiv = document.getElementById('results');
+                
+                if (resumen) {
+                    const headers = ['Estado', 'Cantidad', 'Porcentaje'];
+                    const tableData = [
+                        ['FINALIZADO', resumen.finalizados || 0, `${resumen.porcentajeFinalizados || 0}%`],
+                        ['EN_CURSO', resumen.enCurso || 0, `${resumen.porcentajeEnCurso || 0}%`],
+                        ['SOLICITADO', resumen.solicitados || 0, `${resumen.porcentajeSolicitados || 0}%`],
+                        ['CANCELADO', resumen.cancelados || 0, `${resumen.porcentajeCancelados || 0}%`]
+                    ];
+                    
+                    resultsDiv.innerHTML = `
+                        <h4>📋 Resumen de Servicios</h4>
+                        <p class="alert alert-success">Total de servicios: ${resumen.total || 0}</p>
+                        ${createTable(tableData, headers)}
+                        <div class="table-container">
+                            <h4>🏆 Usuarios Más Frecuentes</h4>
+                            <div id="tabla-usuarios-frecuentes">
+                                <p class="alert alert-info">Cargando datos...</p>
+                            </div>
+                        </div>
+                    `;
+                    // Recargar la tabla principal
+                    setTimeout(cargarUsuariosFrecuentesIniciales, 500);
+                } else {
+                    showResult('No se pudo obtener el resumen de servicios.', true);
+                }
+            } catch (error) {
+                showResult(`Error al obtener resumen: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar usuarios frecuentes iniciales
+        async function cargarUsuariosFrecuentesIniciales() {
+            try {
+                const usuarios = await get('/consultas/usuariosFrecuentes?limite=10&ordenar_por=total_servicios');
+                const tablaDiv = document.getElementById('tabla-usuarios-frecuentes');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Pos.', 'Cédula', 'Nombre', 'Servicios', 'Gasto Total'];
+                    const tableData = usuarios.map((usuario, index) => [
+                        `${index + 1}°`,
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.totalServicios || 0,
+                        usuario.gastoTotal ? `$${usuario.gastoTotal.toLocaleString()}` : '$0'
+                    ]);
+                    tablaDiv.innerHTML = createTable(tableData, headers);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No se encontraron usuarios frecuentes.</p>';
+                }
+            } catch (error) {
+                const tablaDiv = document.getElementById('tabla-usuarios-frecuentes');
+                tablaDiv.innerHTML = '<p class="alert alert-danger">❌ Error al cargar usuarios frecuentes</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Verificar conexión con el backend
+            await showConnectionStatus();
+            
+            // Cargar tabla inicial
+            cargarUsuariosFrecuentesIniciales();
+            
+            // Establecer fechas por defecto (último mes)
+            const hoy = new Date();
+            const haceUnMes = new Date();
+            haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+            
+            document.getElementById('fecha_inicio').value = haceUnMes.toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = hoy.toISOString().split('T')[0];
+        });
+    </script>
+</body>
+</html>

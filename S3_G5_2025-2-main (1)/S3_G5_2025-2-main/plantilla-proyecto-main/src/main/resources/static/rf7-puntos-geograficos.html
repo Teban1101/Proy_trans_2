@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF7 - Registrar Punto Geográfico - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>📍 RF7 - Registrar un Punto Geográfico</h1>
+            <p>Todos los usuarios pueden registrar puntos geográficos en cualquier momento. Esto requiere indicar un nombre (para establecimientos particulares), una dirección, unas coordenadas geográficas y una ciudad.</p>
+        </div>
+        
+        <div class="content">
+            <!-- Estado de conexión -->
+            <div id="connection-status"></div>
+            
+            <!-- Sección: Registrar Punto Geográfico -->
+            <div class="form-section">
+                <h2>📍 Registrar Nuevo Punto Geográfico</h2>
+                <form id="puntoGeograficoForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">Nombre del Establecimiento/Lugar *</label>
+                            <input type="text" id="nombre" name="nombre" required 
+                                   placeholder="Ej: Centro Comercial Andino, Aeropuerto El Dorado">
+                        </div>
+                        <div class="form-group">
+                            <label for="direccion">Dirección *</label>
+                            <input type="text" id="direccion" name="direccion" required 
+                                   placeholder="Ej: Calle 123 # 45-67">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="latitud">Latitud *</label>
+                            <input type="number" id="latitud" name="latitud" required 
+                                   step="0.000001" placeholder="Ej: 4.711000" 
+                                   min="-90" max="90">
+                        </div>
+                        <div class="form-group">
+                            <label for="longitud">Longitud *</label>
+                            <input type="number" id="longitud" name="longitud" required 
+                                   step="0.000001" placeholder="Ej: -74.072000" 
+                                   min="-180" max="180">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad *</label>
+                            <select id="ciudad" name="id_ciudad" required>
+                                <option value="">Seleccionar ciudad...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipo_lugar">Tipo de Lugar</label>
+                            <select id="tipo_lugar" name="tipo_lugar">
+                                <option value="">Seleccionar tipo...</option>
+                                <option value="COMERCIAL">Comercial</option>
+                                <option value="RESIDENCIAL">Residencial</option>
+                                <option value="EMPRESARIAL">Empresarial</option>
+                                <option value="TURISTICO">Turístico</option>
+                                <option value="EDUCATIVO">Educativo</option>
+                                <option value="MEDICO">Médico</option>
+                                <option value="TRANSPORTE">Transporte</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="descripcion">Descripción/Observaciones</label>
+                            <textarea id="descripcion" name="descripcion" rows="3" 
+                                      placeholder="Descripción adicional del lugar o punto de referencia"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="usuario_registro">Usuario que Registra (Opcional)</label>
+                            <select id="usuario_registro" name="id_usuario">
+                                <option value="">Sistema / Anónimo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="publico">¿Punto Público?</label>
+                            <select id="publico" name="publico">
+                                <option value="true">Sí - Visible para todos</option>
+                                <option value="false">No - Solo para el usuario</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn">Registrar Punto Geográfico</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('puntoGeograficoForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Mapa de Coordenadas -->
+            <div class="form-section">
+                <h2>🗺️ Visualización de Coordenadas</h2>
+                <div class="alert alert-info">
+                    <strong>Coordenadas actuales:</strong> 
+                    <span id="coordenadas-actuales">No especificadas</span>
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    <h4>📍 Enlace de Google Maps</h4>
+                    <div id="enlace-maps">
+                        <p class="text-muted">Ingrese coordenadas para generar el enlace</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📍 Puntos Geográficos Registrados</h3>
+                <div id="results">
+                    <div class="table-container">
+                        <div id="tabla-puntos">
+                            <p class="alert alert-info">Cargando puntos geográficos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Registrar punto geográfico
+        document.getElementById('puntoGeograficoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('puntoGeograficoForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            // Validar coordenadas
+            const latitud = parseFloat(document.getElementById('latitud').value);
+            const longitud = parseFloat(document.getElementById('longitud').value);
+            
+            if (latitud < -90 || latitud > 90) {
+                showResult('La latitud debe estar entre -90 y 90 grados.', true);
+                return;
+            }
+            
+            if (longitud < -180 || longitud > 180) {
+                showResult('La longitud debe estar entre -180 y 180 grados.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            // Remove empty values from FormData (avoid sending empty strings for optional fields)
+            const entries = Array.from(formData.entries()).filter(([k, v]) => v !== null && v !== '');
+            const puntoData = Object.fromEntries(entries);
+            
+            // Generar ID único para el punto
+            puntoData.id_punto = Date.now();
+            
+            // Limpiar campos vacíos
+            if (!puntoData.id_usuario) delete puntoData.id_usuario;
+            if (!puntoData.tipo_lugar) delete puntoData.tipo_lugar;
+            if (!puntoData.descripcion) delete puntoData.descripcion;
+            
+            try {
+                const response = await post('/puntosGeograficos/insertar', puntoData);
+                
+                if (response) {
+                    showResult(`✅ Punto geográfico "${puntoData.nombre}" registrado exitosamente en ${latitud}, ${longitud}`, false);
+                    resetForm('puntoGeograficoForm');
+                    actualizarCoordenadasDisplay();
+                    cargarPuntosGeograficos(); // Recargar la tabla
+                } else {
+                    showResult('Error al registrar el punto geográfico.', true);
+                }
+            } catch (error) {
+                showResult(`Error al registrar punto geográfico: ${error.message}`, true);
+            }
+        });
+        
+        // Nota: la funcionalidad de geolocalización fue removida por requerimiento.
+        
+        // Actualizar display de coordenadas
+        function actualizarCoordenadasDisplay() {
+            const latitud = document.getElementById('latitud').value;
+            const longitud = document.getElementById('longitud').value;
+            const coordenadasSpan = document.getElementById('coordenadas-actuales');
+            const enlaceMaps = document.getElementById('enlace-maps');
+            
+            if (latitud && longitud) {
+                coordenadasSpan.textContent = `${latitud}, ${longitud}`;
+                
+                const mapsUrl = `https://maps.google.com/?q=${latitud},${longitud}`;
+                enlaceMaps.innerHTML = `
+                    <a href="${mapsUrl}" target="_blank" class="btn btn-sm btn-info">
+                        🗺️ Ver en Google Maps
+                    </a>
+                    <p class="text-muted" style="margin-top: 5px; font-size: 0.9em;">
+                        ${mapsUrl}
+                    </p>
+                `;
+            } else {
+                coordenadasSpan.textContent = 'No especificadas';
+                enlaceMaps.innerHTML = '<p class="text-muted">Ingrese coordenadas para generar el enlace</p>';
+            }
+        }
+        
+        // Event listeners para actualizar coordenadas en tiempo real
+        document.getElementById('latitud').addEventListener('input', actualizarCoordenadasDisplay);
+        document.getElementById('longitud').addEventListener('input', actualizarCoordenadasDisplay);
+        
+        // Cargar ciudades en el select (normaliza distintas formas de respuesta)
+        async function cargarCiudades() {
+            try {
+                const ciudades = await get('/ciudades/darCiudades');
+                const select = document.getElementById('ciudad');
+
+                select.innerHTML = '<option value="">Seleccionar ciudad...</option>';
+
+                if (Array.isArray(ciudades)) {
+                    ciudades.forEach(ciudad => {
+                        const option = document.createElement('option');
+                        option.value = ciudad.id_ciudad || ciudad.id || ciudad.ID_CIUDAD || '';
+                        option.textContent = ciudad.nombre || ciudad.NOMBRE || ciudad.name || '';
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar ciudades:', error);
+            }
+        }
+        
+        // Cargar usuarios en el select
+        async function cargarUsuarios() {
+            try {
+                const usuarios = await get('/usuarios/darUsuarios');
+                const select = document.getElementById('usuario_registro');
+                
+                select.innerHTML = '<option value="">Sistema / Anónimo</option>';
+                
+                if (Array.isArray(usuarios)) {
+                    usuarios.forEach(usuario => {
+                        const option = document.createElement('option');
+                        option.value = usuario.cedula;
+                        option.textContent = `${usuario.cedula} - ${usuario.nombre}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+                // No es crítico, puede seguir funcionando sin usuarios
+            }
+        }
+        
+        // Cargar puntos geográficos registrados
+        async function cargarPuntosGeograficos() {
+            try {
+                console.log('🔍 Iniciando carga de puntos geográficos...');
+                showResult('Cargando puntos geográficos...', false);
+                
+                let puntos;
+                try {
+                    puntos = await get('/puntosGeograficos/darPuntos');
+                    console.log('📦 Datos recibidos (darPuntos) (raw):', puntos);
+                } catch (e) {
+                    console.warn('darPuntos falló, intentando debugCount...', e.message);
+                }
+
+                // Si darPuntos devolvió vacío o falló, intentar endpoint de debug que usa JDBC
+                if (!puntos || (Array.isArray(puntos) && puntos.length === 0) || (puntos && puntos.ok === false)) {
+                    try {
+                        const debugResp = await get('/puntosGeograficos/debugCount');
+                        console.log('📦 Datos recibidos (debugCount):', debugResp);
+                        if (debugResp && Array.isArray(debugResp.sample)) {
+                            // If there are more rows than the sample length, fetch the full set
+                            if (debugResp.count && debugResp.count > debugResp.sample.length) {
+                                try {
+                                    const allResp = await get('/puntosGeograficos/debugAll');
+                                    console.log('📦 Datos recibidos (debugAll):', allResp);
+                                    if (allResp && Array.isArray(allResp.data)) {
+                                        puntos = allResp.data.map(row => ({
+                                            id_punto: row.ID_PUNTO || row.id_punto || row.ID || null,
+                                            nombre: row.NOMBRE || row.nombre || '',
+                                            direccion: row.DIRECCION || row.direccion || '',
+                                            latitud: row.LATITUD || row.latitud || null,
+                                            longitud: row.LONGITUD || row.longitud || null,
+                                            ciudad: { nombre: row.NOMBRE_CIUDAD || row.CIUDAD || null }
+                                        }));
+                                    }
+                                } catch (allErr) {
+                                    console.warn('No se pudo obtener debugAll, usando sample de debugCount', allErr);
+                                    puntos = debugResp.sample.map(row => ({
+                                        id_punto: row.ID_PUNTO || row.id_punto || row.ID || null,
+                                        nombre: row.NOMBRE || row.nombre || '',
+                                        direccion: row.DIRECCION || row.direccion || '',
+                                        latitud: row.LATITUD || row.latitud || null,
+                                        longitud: row.LONGITUD || row.longitud || null,
+                                        ciudad: { nombre: row.NOMBRE_CIUDAD || row.CIUDAD || null }
+                                    }));
+                                }
+                            } else {
+                                // small table, sample contains all rows
+                                puntos = debugResp.sample.map(row => ({
+                                    id_punto: row.ID_PUNTO || row.id_punto || row.ID || null,
+                                    nombre: row.NOMBRE || row.nombre || '',
+                                    direccion: row.DIRECCION || row.direccion || '',
+                                    latitud: row.LATITUD || row.latitud || null,
+                                    longitud: row.LONGITUD || row.longitud || null,
+                                    ciudad: { nombre: row.NOMBRE_CIUDAD || row.CIUDAD || null }
+                                }));
+                            }
+                        }
+                    } catch (dbgErr) {
+                        console.error('Error al llamar debugCount:', dbgErr);
+                    }
+                }
+
+                // Normalizar posibles formas de respuesta
+                if (puntos && puntos.content) {
+                    puntos = puntos.content; // pagina Spring Data
+                }
+
+                const tablaDiv = document.getElementById('tabla-puntos');
+
+                // Si la respuesta es una tabla de filas (Object[]), normalizar a objetos
+                if (Array.isArray(puntos) && puntos.length > 0 && Array.isArray(puntos[0])) {
+                    // Mapear filas a objetos usando posiciones comunes
+                    puntos = puntos.map(row => {
+                        return {
+                            id_punto: row[0],
+                            nombre: row[1],
+                            direccion: row[2],
+                            latitud: row[3],
+                            longitud: row[4],
+                            ciudad: { nombre: row[5] }
+                        };
+                    });
+                }
+
+                // Si la respuesta es un objeto (no array), convertir a array si tiene keys numeradas
+                if (!Array.isArray(puntos)) {
+                    console.warn('Respuesta de puntos no es un array. Normalizando...');
+                    puntos = puntos ? [puntos] : [];
+                }
+
+                // Mapear y normalizar campos por nombre/variantes
+                const normalized = puntos.map(punto => ({
+                    id_punto: punto.id_punto || punto.ID_PUNTO || punto.id || punto.idPunto || null,
+                    nombre: punto.nombre || punto.NOMBRE || punto.name || '',
+                    direccion: punto.direccion || punto.DIRECCION || punto.address || '',
+                    latitud: parseFloat(punto.latitud || punto.LATITUD || punto.lat || punto[3]) || null,
+                    longitud: parseFloat(punto.longitud || punto.LONGITUD || punto.lng || punto[4]) || null,
+                    ciudad: (punto.ciudad && (punto.ciudad.nombre || punto.ciudad.name)) ? { nombre: punto.ciudad.nombre || punto.ciudad.name } : (punto.ciudad || null)
+                }));
+
+                if (normalized.length > 0) {
+                    const headers = ['ID', 'Nombre', 'Dirección', 'Coordenadas', 'Ciudad', 'Acciones'];
+                    const tableData = normalized.map(punto => [
+                        punto.id_punto,
+                        punto.nombre,
+                        punto.direccion,
+                        (punto.latitud !== null && punto.longitud !== null) ? `${punto.latitud}, ${punto.longitud}` : 'N/A',
+                        punto.ciudad?.nombre || 'N/A',
+                        (punto.latitud !== null && punto.longitud !== null) ? `<a href="https://maps.google.com/?q=${punto.latitud},${punto.longitud}" target="_blank" class="btn btn-sm">🗺️ Ver</a>` : ''
+                    ]);
+
+                    tablaDiv.innerHTML = `
+                        <h4>📍 Puntos Geográficos Registrados (${normalized.length})</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                    showResult(`✅ Se cargaron ${normalized.length} puntos geográficos correctamente.`, false);
+                } else {
+                    tablaDiv.innerHTML = '<p class="alert alert-info">ℹ️ No hay puntos geográficos registrados.</p>';
+                    showResult('No hay puntos geográficos registrados en la base de datos.', false);
+                }
+            } catch (error) {
+                console.error('❌ Error detallado al cargar puntos:', error);
+                const tablaDiv = document.getElementById('tabla-puntos');
+                tablaDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>❌ Error al cargar puntos geográficos</strong><br>
+                        <small>Detalles: ${error.message}</small><br>
+                        <small>Verifica que el servidor esté corriendo en http://localhost:8080</small>
+                    </div>
+                `;
+                showResult(`Error al cargar puntos geográficos: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🚀 Iniciando RF7 - Puntos Geográficos');
+            
+            // Verificar conexión con el backend
+            console.log('🔗 Verificando conexión...');
+            const isConnected = await showConnectionStatus();
+            console.log('🔗 Estado de conexión:', isConnected);
+            
+            // Cargar selects
+            console.log('📋 Cargando ciudades...');
+            cargarCiudades();
+            console.log('👥 Cargando usuarios...');
+            cargarUsuarios();
+            
+            // Cargar tabla inicial
+            console.log('📍 Cargando puntos geográficos...');
+            cargarPuntosGeograficos();
+            
+            // Inicializar display de coordenadas
+            actualizarCoordenadasDisplay();
+            
+            console.log('✅ RF7 inicializado completamente');
+        });
+    </script>
+</body>
+</html>

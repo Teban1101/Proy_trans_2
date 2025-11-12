@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFC3 - Dinero por Conductores - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    <div class="container">
+        <div class="header">
+            <h1>💰 RFC3 - Dinero obtenido por Conductores (por vehículo)</h1>
+            <p>Mostrar el total de dinero obtenido por usuarios conductores para cada uno de sus vehículos (descontando comisión).</p>
+        </div>
+
+        <div class="content">
+            <div id="connection-status"></div>
+
+            <div class="form-section">
+                <h2>⚙️ Parámetros</h2>
+                <form id="form-params">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="comision">Porcentaje de Comisión AlpesCab (%)</label>
+                            <input type="number" id="comision" name="comision" value="10" min="0" max="100">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <button class="btn btn-primary" type="submit">Ejecutar RFC3 (Agregado por vehículo)</button>
+                        <button class="btn btn-secondary" type="button" onclick="resetForm('form-params')">Limpiar</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="tabla-resultados">
+                    <p class="alert alert-info">Complete el porcentaje de comisión y presione Ejecutar.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        document.getElementById('form-params').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const comision = parseFloat(document.getElementById('comision').value) || 0;
+            try {
+                showResult('Ejecutando RFC3 (agregado por vehículo)...', false);
+                const datos = await get(`/servicios/rfc3/agregado?comisionPct=${encodeURIComponent(comision)}`);
+                const div = document.getElementById('tabla-resultados');
+                if (Array.isArray(datos) && datos.length > 0) {
+                    const headers = ['Cédula Conductor', 'Nombre Conductor', 'Placa Vehículo', 'Num Servicios', 'Total Neto (después comisión)'];
+                    const tableData = datos.map(row => [
+                        row[0],
+                        row[1],
+                        row[2],
+                        row[3],
+                        row[4]
+                    ]);
+                    div.innerHTML = `<h4>Ingresos por Conductor y Vehículo (comisión ${comision}%)</h4>${createTable(tableData, headers)}`;
+                    showResult(`✅ Se encontraron ${datos.length} filas.`, false);
+                } else {
+                    div.innerHTML = '<p class="alert alert-info">No hay datos para RFC3 con los parámetros proporcionados.</p>';
+                    showResult('No se encontraron resultados para RFC3.', true);
+                }
+            } catch (error) {
+                console.error('Error RFC3:', error);
+                showResult(`Error al ejecutar RFC3: ${error.message}`, true);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', showConnectionStatus);
+    </script>
+</body>
+</html>

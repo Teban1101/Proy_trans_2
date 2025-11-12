@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RF3 - Usuarios Conductores - AlpesCab</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <a href="index.html" class="back-button">← Volver al Menú</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🚗 RF3 - Usuarios Conductores</h1>
+            <p>Registrar usuarios que prestarán servicios de transporte</p>
+        </div>
+        
+        <div class="content">
+            <!-- Sección: Registrar Usuario Conductor -->
+            <div class="form-section">
+                <h2>📝 Registrar Usuario Conductor</h2>
+                <div class="alert alert-info">
+                    <strong>ℹ️ Información:</strong> Se registrará el usuario base y se asociará automáticamente como usuario conductor.
+                </div>
+                <form id="registrarUsuarioConductorForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula">Cédula *</label>
+                            <input type="number" id="cedula" name="cedula" required 
+                                   placeholder="Ej: 1234567890" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre Completo *</label>
+                            <input type="text" id="nombre" name="nombre" required 
+                                   placeholder="Ej: Carlos Rodríguez">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="correo">Correo Electrónico</label>
+                            <input type="email" id="correo" name="correo" 
+                                   placeholder="Ej: carlos.rodriguez@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="celular">Celular *</label>
+                            <input type="text" id="celular" name="celular" required 
+                                   placeholder="Ej: 3201234567">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Registrar Usuario Conductor</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('registrarUsuarioConductorForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Asociar Usuario Existente -->
+            <div class="form-section">
+                <h2>🔗 Asociar Usuario Existente como Conductor</h2>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Nota:</strong> El usuario ya debe estar registrado en el sistema.
+                </div>
+                <form id="asociarUsuarioConductorForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="id_usuario_existente">Cédula del Usuario Existente *</label>
+                            <input type="number" id="id_usuario_existente" name="id_usuario" required 
+                                   placeholder="Cédula del usuario a asociar" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success">Asociar como Conductor</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm('asociarUsuarioConductorForm')">Limpiar</button>
+                </form>
+            </div>
+            
+            <!-- Sección: Consultas -->
+            <div class="form-section">
+                <h2>🔍 Consultar Usuarios Conductores</h2>
+                <div class="form-row">
+                    <button class="btn btn-secondary" onclick="listarUsuariosConductor()">Listar Todos los Conductores</button>
+                    <button class="btn btn-secondary" onclick="listarTodosUsuarios()">Listar Todos los Usuarios</button>
+                </div>
+                <div class="form-group">
+                    <label for="cedula_consulta">Consultar Conductor por Cédula</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" id="cedula_consulta" name="cedula_consulta" 
+                               placeholder="Cédula del conductor" min="1" style="flex: 1;">
+                        <button class="btn btn-secondary" onclick="consultarUsuarioPorCedula()">Consultar Usuario</button>
+                        <button class="btn btn-secondary" onclick="consultarUsuarioConductorPorCedula()">Consultar Conductor</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección: Eliminar -->
+            <div class="form-section" style="border-left-color: #dc3545;">
+                <h2>🗑️ Eliminar Usuario Conductor</h2>
+                <div class="alert alert-warning">
+                    <strong>⚠️ Atención:</strong> Esto solo eliminará la asociación como conductor, no el usuario base.
+                </div>
+                <form id="eliminarUsuarioConductorForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cedula_eliminar">Cédula del Conductor *</label>
+                            <input type="number" id="cedula_eliminar" name="id_usuario" required 
+                                   placeholder="Cédula del conductor a desasociar" min="1">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Eliminar Usuario Conductor</button>
+                </form>
+            </div>
+            
+            <!-- Resultados -->
+            <div class="results-section">
+                <h3>📋 Resultados</h3>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/common.js"></script>
+    <script>
+        // Registrar usuario conductor completo
+        document.getElementById('registrarUsuarioConductorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('registrarUsuarioConductorForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const result = await post(`/usuariosConductor/registrar?${params}`);
+                showResult(result);
+                resetForm('registrarUsuarioConductorForm');
+                // Actualizar listas automáticamente
+                setTimeout(() => {
+                    listarUsuariosConductor();
+                    listarTodosUsuarios();
+                }, 1000);
+            } catch (error) {
+                showResult(`Error al registrar usuario conductor: ${error.message}`, true);
+            }
+        });
+        
+        // Asociar usuario existente como conductor
+        document.getElementById('asociarUsuarioConductorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('asociarUsuarioConductorForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            const formData = new FormData(this);
+            const params = formDataToParams(formData);
+            
+            try {
+                const result = await post(`/usuariosConductor/insertar?${params}`);
+                showResult(result);
+                resetForm('asociarUsuarioConductorForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarUsuariosConductor, 1000);
+            } catch (error) {
+                showResult(`Error al asociar usuario conductor: ${error.message}`, true);
+            }
+        });
+        
+        // Eliminar usuario conductor
+        document.getElementById('eliminarUsuarioConductorForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!validateForm('eliminarUsuarioConductorForm')) {
+                showResult('Por favor complete todos los campos requeridos.', true);
+                return;
+            }
+            
+            if (!confirm('¿Está seguro de que desea eliminar este usuario conductor?')) {
+                return;
+            }
+            
+            const cedula = document.getElementById('cedula_eliminar').value;
+            
+            try {
+                const result = await del(`/usuariosConductor/eliminar/${cedula}`);
+                showResult(result);
+                resetForm('eliminarUsuarioConductorForm');
+                // Actualizar lista automáticamente
+                setTimeout(listarUsuariosConductor, 1000);
+            } catch (error) {
+                showResult(`Error al eliminar usuario conductor: ${error.message}`, true);
+            }
+        });
+        
+        // Listar usuarios conductores
+        async function listarUsuariosConductor() {
+            try {
+                const conductores = await get('/usuariosConductor/darUsuariosConductor');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(conductores) && conductores.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = conductores.map(conductor => [
+                        conductor.id_usuario,
+                        conductor.usuario?.nombre || 'N/A',
+                        conductor.usuario?.correo || 'N/A',
+                        conductor.usuario?.celular || 'N/A'
+                    ]);
+                    resultsDiv.innerHTML = `
+                        <h4>🚗 Lista de Usuarios Conductores (${conductores.length} registros)</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">No se encontraron usuarios conductores registrados.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al listar usuarios conductores: ${error.message}`, true);
+            }
+        }
+        
+        // Listar todos los usuarios
+        async function listarTodosUsuarios() {
+            try {
+                const usuarios = await get('/usuarios/darUsuarios');
+                const resultsDiv = document.getElementById('results');
+                
+                if (Array.isArray(usuarios) && usuarios.length > 0) {
+                    const headers = ['Cédula', 'Nombre', 'Correo', 'Celular'];
+                    const tableData = usuarios.map(usuario => [
+                        usuario.cedula,
+                        usuario.nombre,
+                        usuario.correo || 'N/A',
+                        usuario.celular
+                    ]);
+                    resultsDiv.innerHTML = `
+                        <h4>👥 Lista de Todos los Usuarios (${usuarios.length} registros)</h4>
+                        ${createTable(tableData, headers)}
+                    `;
+                } else {
+                    resultsDiv.innerHTML = '<p class="alert alert-info">No se encontraron usuarios registrados.</p>';
+                }
+            } catch (error) {
+                showResult(`Error al listar usuarios: ${error.message}`, true);
+            }
+        }
+        
+        // Consultar usuario por cédula
+        async function consultarUsuarioPorCedula() {
+            const cedula = document.getElementById('cedula_consulta').value;
+            
+            if (!cedula) {
+                showResult('Por favor ingrese una cédula válida.', true);
+                return;
+            }
+            
+            try {
+                const usuario = await get(`/usuarios/darUsuario/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (usuario) {
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Usuario Encontrado</h4>
+                        <div class="card">
+                            <p><strong>Cédula:</strong> ${usuario.cedula}</p>
+                            <p><strong>Nombre:</strong> ${usuario.nombre}</p>
+                            <p><strong>Correo:</strong> ${usuario.correo || 'N/A'}</p>
+                            <p><strong>Celular:</strong> ${usuario.celular}</p>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="alert alert-warning">No se encontró un usuario con cédula ${cedula}.</p>`;
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuario: ${error.message}`, true);
+            }
+        }
+        
+        // Consultar usuario conductor por cédula
+        async function consultarUsuarioConductorPorCedula() {
+            const cedula = document.getElementById('cedula_consulta').value;
+            
+            if (!cedula) {
+                showResult('Por favor ingrese una cédula válida.', true);
+                return;
+            }
+            
+            try {
+                const usuarioConductor = await get(`/usuariosConductor/darUsuarioConductor/${cedula}`);
+                const resultsDiv = document.getElementById('results');
+                
+                if (usuarioConductor) {
+                    resultsDiv.innerHTML = `
+                        <h4>🔍 Usuario Conductor Encontrado</h4>
+                        <div class="card">
+                            <p><strong>Cédula:</strong> ${usuarioConductor.id_usuario}</p>
+                            <p><strong>Nombre:</strong> ${usuarioConductor.usuario?.nombre || 'N/A'}</p>
+                            <p><strong>Correo:</strong> ${usuarioConductor.usuario?.correo || 'N/A'}</p>
+                            <p><strong>Celular:</strong> ${usuarioConductor.usuario?.celular || 'N/A'}</p>
+                            <span class="status-badge status-active">Usuario Conductor</span>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p class="alert alert-warning">No se encontró un usuario conductor con cédula ${cedula}.</p>`;
+                }
+            } catch (error) {
+                showResult(`Error al consultar usuario conductor: ${error.message}`, true);
+            }
+        }
+        
+        // Cargar datos iniciales
+        document.addEventListener('DOMContentLoaded', function() {
+            listarUsuariosConductor();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Directo API</title>
+</head>
+<body>
+    <h1>Test Directo de API - Puntos Geográficos</h1>
+    <button onclick="testAPI()">Probar API Directamente</button>
+    <div id="output"></div>
+    
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            output.innerHTML = 'Probando...';
+            
+            try {
+                const response = await fetch('/puntosGeograficos/darPuntos');
+                output.innerHTML = `
+                    <h3>Status: ${response.status}</h3>
+                    <h3>Headers:</h3>
+                    <pre>${JSON.stringify([...response.headers.entries()], null, 2)}</pre>
+                `;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    output.innerHTML += `
+                        <h3>Data:</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    output.innerHTML += `
+                        <h3>Error Response:</h3>
+                        <pre>${errorText}</pre>
+                    `;
+                }
+            } catch (error) {
+                output.innerHTML = `
+                    <h3>Exception:</h3>
+                    <pre>${error.message}</pre>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
