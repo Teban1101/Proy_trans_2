@@ -102,29 +102,29 @@
             </div>
             </div>
 
-            <!-- Nueva tarjeta: Pruebas Puntos 4 y 5 (servida) -->
+            <!-- Nueva tarjeta: Pruebas Puntos 4 y 5 -->
             <div class="card" style="margin-top:18px;">
                 <h4>🧪 Pruebas de Aislamiento de Transacciones</h4>
-                <p>Botones para ejecutar las pruebas de los puntos 4 y 5. Cada prueba demorará exactamente <strong>30 segundos</strong> y luego mostrará un mensaje de éxito y el historial (RFC1) para dos usuarios distintos.</p>
+                <p>Botones para ejecutar las pruebas de los puntos 4 y 5. Cada prueba demorará exactamente <strong>30 segundos</strong> y luego mostrará un mensaje de éxito y el historial (RFC1) para un usuario diferente por prueba.</p>
                 <div style="display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap;">
-                    <button id="btn-punto4-served" class="btn">Punto 4 (Serializable)</button>
-                    <button id="btn-punto5-served" class="btn">Punto 5 (Read Committed)</button>
-                    <button id="btn-puntos-clear-served" class="btn btn-secondary">Limpiar resultados</button>
+                    <button id="btn-punto4" class="btn">Punto 4 (Serializable)</button>
+                    <button id="btn-punto5" class="btn">Punto 5 (Read Committed)</button>
+                    <button id="btn-puntos-clear" class="btn btn-secondary">Limpiar resultados</button>
                 </div>
-                <div id="puntos-result-served" style="margin-top:16px;"></div>
+                <div id="puntos-result" style="margin-top:16px;"></div>
             </div>
         </div>
     </div>
 
     <script src="js/common.js"></script>
     <script>
-        // Script para la versión servida del index (target/classes/static)
+        // Handlers para las pruebas (archivo servido desde src/main/resources/static)
         (function() {
-            const btn4 = document.getElementById('btn-punto4-served');
-            const btn5 = document.getElementById('btn-punto5-served');
-            const btnClear = document.getElementById('btn-puntos-clear-served');
-            const puntosResult = document.getElementById('puntos-result-served');
-            // Usuarios por prueba: un usuario por prueba (cédulas) - cambiados según lo solicitado
+            const btn4 = document.getElementById('btn-punto4');
+            const btn5 = document.getElementById('btn-punto5');
+            const btnClear = document.getElementById('btn-puntos-clear');
+            const puntosResult = document.getElementById('puntos-result');
+
             const usuarioPunto4 = 123456799;
             const usuarioPunto5 = 200001;
 
@@ -138,7 +138,7 @@
 
                 let resultadosHtml = '';
                 try {
-                    const ci = usuarioId || usuarioPunto4;
+                    const ci = usuarioId;
                     try {
                         const usuario = await get(`/usuarios/darUsuario/${ci}`);
                         const nombre = usuario?.nombre || (`Usuario ${ci}`);
